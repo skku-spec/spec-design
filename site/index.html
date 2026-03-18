@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPEC Design Guide</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[data-theme="dark"]{--bg:#202020;--bg-sidebar:#1a1a1a;--bg-card:#2a2a2a;--bg-hover:rgba(255,108,15,0.08);--bg-code:#161616;--text:#c8c8c8;--text-bright:#FCFCF8;--text-dim:#8a8a8a;--text-dimmer:#666;--primary:#FF6C0F;--primary-variant:#FF9900;--secondary:#4C4780;--secondary-light:rgba(76,71,128,0.15);--border:rgba(255,255,255,0.08);--border-strong:rgba(255,255,255,0.15);--quote-bg:rgba(255,108,15,0.06);--table-head:#333;--table-stripe:rgba(255,255,255,0.02);--shadow:rgba(0,0,0,0.3)}
+[data-theme="light"]{--bg:#FCFCF8;--bg-sidebar:#f5f4f0;--bg-card:#fff;--bg-hover:rgba(255,108,15,0.06);--bg-code:#f5f4f0;--text:#3a3a3a;--text-bright:#202020;--text-dim:#777;--text-dimmer:#999;--primary:#FF6C0F;--primary-variant:#FF9900;--secondary:#4C4780;--secondary-light:rgba(76,71,128,0.08);--border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.12);--quote-bg:rgba(255,108,15,0.05);--table-head:#FF6C0F;--table-stripe:rgba(0,0,0,0.02);--shadow:rgba(0,0,0,0.08)}
+:root{--sidebar-w:260px;--toc-w:200px;--header-h:56px}
+html{scroll-behavior:smooth}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:160%;letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+.hdr{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--bg-sidebar);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;z-index:100;backdrop-filter:blur(12px)}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-menu{display:none;background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:8px;color:var(--text-bright)}
+.hdr-menu:hover{background:var(--bg-hover)}
+.hdr-menu svg{width:20px;height:20px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{display:flex;align-items:center}
+.logo-mark img{height:28px;width:auto;filter:brightness(0) saturate(100%) invert(42%) sepia(93%) saturate(1700%) hue-rotate(360deg) brightness(101%) contrast(105%)}
+.logo-sub{font-size:12px;color:var(--text-dim);font-weight:500;letter-spacing:-0.01em}
+.logo-divider{width:1px;height:24px;background:var(--border-strong);margin:0 4px}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.theme-btn{background:none;border:1px solid var(--border-strong);border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dim);transition:all .2s}
+.theme-btn:hover{background:var(--bg-hover);color:var(--primary);border-color:var(--primary)}
+.side{position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--bg-sidebar);border-right:1px solid var(--border);overflow-y:auto;padding:16px 10px;z-index:90;transition:transform .25s ease}
+.side::-webkit-scrollbar{width:3px}
+.side::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+.nav-divider{font-size:10px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.1em;padding:20px 12px 8px;border-top:1px solid var(--border);margin-top:8px}
+.nav-divider:first-child{border-top:none;margin-top:0}
+.nav-section{margin-bottom:4px}
+.nav-section-toggle{display:flex;align-items:center;width:100%;background:none;border:none;padding:8px 12px;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-dim);cursor:pointer;border-radius:8px;transition:all .15s;gap:8px}
+.nav-section-toggle:hover{background:var(--bg-hover);color:var(--text-bright)}
+.chevron{width:16px;height:16px;margin-left:auto;transition:transform .2s;flex-shrink:0}
+.nav-section.open .chevron{transform:rotate(180deg)}
+.nav-section-items{max-height:0;overflow:hidden;transition:max-height .3s ease;padding-left:4px}
+.nav-section.open .nav-section-items{max-height:2000px}
+.nav-item{display:block;width:100%;text-align:left;background:none;border:none;padding:6px 12px 6px 20px;font-size:13px;font-family:inherit;color:var(--text-dim);border-radius:8px;cursor:pointer;transition:all .15s;line-height:1.5;margin-bottom:1px;border-left:2px solid transparent}
+.nav-item:hover{background:var(--bg-hover);color:var(--text-bright)}
+.nav-item.active{color:var(--primary);font-weight:600;border-left-color:var(--primary);background:var(--bg-hover)}
+.nav-item.dim{opacity:0.45}
+.toc{position:fixed;top:var(--header-h);right:0;bottom:0;width:var(--toc-w);padding:24px 16px;overflow-y:auto;font-size:12px}
+.toc-title{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
+.toc a{display:block;padding:4px 0;color:var(--text-dimmer);text-decoration:none;border-left:2px solid transparent;padding-left:10px;transition:all .15s;line-height:1.5}
+.toc a:hover,.toc a.active{color:var(--primary);border-left-color:var(--primary)}
+.main{margin-left:var(--sidebar-w);margin-right:var(--toc-w);margin-top:var(--header-h);min-height:calc(100vh - var(--header-h))}
+.chapter{display:none;max-width:700px;margin:0 auto;padding:48px 32px 100px;animation:fadeIn .2s ease}
+.chapter.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chapter h1{font-size:34px;font-weight:800;color:var(--text-bright);margin:0 0 32px;line-height:130%;letter-spacing:-0.02em}
+.chapter h2{font-size:24px;font-weight:700;color:var(--text-bright);margin:48px 0 20px;padding-bottom:12px;border-bottom:1px solid var(--border);line-height:140%}
+.chapter h3{font-size:18px;font-weight:700;color:var(--primary);margin:36px 0 12px;line-height:140%}
+.chapter h4{font-size:16px;font-weight:700;color:var(--text-bright);margin:24px 0 8px}
+.chapter p{font-size:18px;line-height:160%;letter-spacing:-0.02em;color:var(--text);margin:0 0 18px}
+.chapter a{color:var(--primary);text-decoration:none;border-bottom:1px solid transparent;transition:border .15s}
+.chapter a:hover{border-bottom-color:var(--primary)}
+.chapter strong{font-weight:700;color:var(--text-bright)}
+.chapter em{font-style:italic;color:var(--text-dim)}
+.chapter ul,.chapter ol{margin:0 0 18px;padding-left:24px;font-size:18px;line-height:160%}
+.chapter li{margin-bottom:8px;color:var(--text)}
+.chapter li>ul,.chapter li>ol{margin-top:8px;margin-bottom:0}
+.chapter blockquote{border-left:3px solid var(--primary);background:var(--quote-bg);margin:24px 0;padding:18px 22px;border-radius:0 12px 12px 0;font-size:16px}
+.chapter blockquote p{font-size:16px;margin-bottom:8px}
+.chapter blockquote p:last-child{margin-bottom:0}
+.chapter table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.chapter thead th{background:var(--table-head);color:var(--text-bright);font-weight:600;padding:12px 14px;text-align:left;font-size:13px}
+[data-theme="light"] .chapter thead th{color:#fff}
+.chapter tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text)}
+.chapter tbody tr:nth-child(even){background:var(--table-stripe)}
+.chapter tbody tr:hover{background:var(--bg-hover)}
+.chapter code{font-family:'SF Mono','Fira Code',monospace;background:var(--bg-code);padding:2px 7px;border-radius:5px;font-size:14px;color:var(--primary-variant)}
+.chapter pre{background:var(--bg-code);color:var(--text);padding:22px;border-radius:12px;overflow-x:auto;margin:24px 0;font-size:14px;line-height:1.6;border:1px solid var(--border)}
+.chapter pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.chapter hr{border:none;height:1px;background:var(--border);margin:40px 0}
+.ch-nav{display:flex;gap:16px;margin-top:60px;padding-top:24px;border-top:1px solid var(--border)}
+.ch-nav button{flex:1;background:var(--primary);border:none;border-radius:10px;padding:14px 24px;color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.ch-nav button:hover{background:var(--primary-variant);transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,108,15,0.3)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:80}
+.overlay.show{display:block}
+@media(max-width:1100px){.toc{display:none}.main{margin-right:0}}
+@media(max-width:768px){.hdr-menu{display:flex;align-items:center;justify-content:center}.side{transform:translateX(-100%);width:280px;box-shadow:4px 0 24px var(--shadow)}.side.open{transform:translateX(0)}.main{margin-left:0}.chapter{padding:32px 20px 80px}.chapter h1{font-size:26px}.chapter h2{font-size:20px}.chapter p,.chapter li{font-size:16px}.logo-sub,.logo-divider{display:none}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-left">
+    <button class="hdr-menu" onclick="toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <a class="logo" href="#"><span class="logo-mark"><img src="logo.png" alt="SPEC"></span><span class="logo-divider"></span><span class="logo-sub">Design Guide</span></a>
+  </div>
+  <div class="hdr-right">
+    <button class="theme-btn" onclick="toggleTheme()" title="테마 전환"><svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+  </div>
+</header>
+<div class="overlay" onclick="toggleMenu()"></div>
+<nav class="side">
+<div class="nav-divider">가이드</div>
+<div class="nav-section open">
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>1. SPEC 디자인 개요</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="nav-section-items">
+    <button class="nav-item" data-target="ov-0" onclick="go('ov-0',this)">SPEC 디자인 개요</button>
+  </div>
+</div>
+<div class="nav-section">
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>디자인 기초</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="nav-section-items">
+    <button class="nav-item" data-target="db-0" onclick="go('db-0',this)">왜 디자인을 알아야 하는가?</button>
+    <button class="nav-item" data-target="db-1" onclick="go('db-1',this)">레이아웃의 4원칙 — C.R.A.P.</button>
+    <button class="nav-item" data-target="db-2" onclick="go('db-2',this)">시각적 위계와 구도</button>
+    <button class="nav-item" data-target="db-3" onclick="go('db-3',this)">색의 언어</button>
+    <button class="nav-item" data-target="db-4" onclick="go('db-4',this)">타이포그래피 — 글자의 힘</button>
+    <button class="nav-item" data-target="db-5" onclick="go('db-5',this)">이미지 다루기</button>
+  </div>
+</div>
+<div class="nav-section">
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>2. 툴 소개</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="nav-section-items">
+    <button class="nav-item" data-target="tl-0" onclick="go('tl-0',this)">다루게 될 툴 소개</button>
+    <button class="nav-item" data-target="tl-1" onclick="go('tl-1',this)">Genspark</button>
+    <button class="nav-item" data-target="tl-2" onclick="go('tl-2',this)">Manus</button>
+    <button class="nav-item" data-target="tl-3" onclick="go('tl-3',this)">Snapdeck</button>
+    <button class="nav-item" data-target="tl-4" onclick="go('tl-4',this)">나노바나나 (Hailuo AI)</button>
+    <button class="nav-item" data-target="tl-5" onclick="go('tl-5',this)">Claude Code</button>
+    <button class="nav-item" data-target="tl-6" onclick="go('tl-6',this)">Canva</button>
+    <button class="nav-item" data-target="tl-7" onclick="go('tl-7',this)">미리캔버스</button>
+    <button class="nav-item" data-target="tl-8" onclick="go('tl-8',this)">Figma</button>
+    <button class="nav-item" data-target="tl-9" onclick="go('tl-9',this)">Gamma</button>
+    <button class="nav-item" data-target="tl-10" onclick="go('tl-10',this)">Ideogram</button>
+    <button class="nav-item" data-target="tl-11" onclick="go('tl-11',this)">Pencil Dev</button>
+    <button class="nav-item" data-target="tl-12" onclick="go('tl-12',this)">Pinterest</button>
+  </div>
+</div>
+<div class="nav-section">
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>3. 레퍼런스 사이트 모음</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="nav-section-items">
+    <button class="nav-item" data-target="rf-0" onclick="go('rf-0',this)">레퍼런스</button>
+    <button class="nav-item" data-target="rf-1" onclick="go('rf-1',this)">디자인 영감</button>
+    <button class="nav-item" data-target="rf-2" onclick="go('rf-2',this)">폰트 레퍼런스</button>
+    <button class="nav-item" data-target="rf-3" onclick="go('rf-3',this)">색상 레퍼런스</button>
+    <button class="nav-item" data-target="rf-4" onclick="go('rf-4',this)">로고 레퍼런스</button>
+    <button class="nav-item" data-target="rf-5" onclick="go('rf-5',this)">템플릿 모음</button>
+  </div>
+</div>
+<div class="nav-section">
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>4. 활용 가이드</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="nav-section-items">
+    <button class="nav-item" data-target="pr-0" onclick="go('pr-0',this)">활용</button>
+    <button class="nav-item" data-target="pr-1" onclick="go('pr-1',this)">PPT 제작</button>
+    <button class="nav-item" data-target="pr-2" onclick="go('pr-2',this)">카드뉴스 제작</button>
+    <button class="nav-item" data-target="pr-3" onclick="go('pr-3',this)">카드뉴스 자동화</button>
+    <button class="nav-item" data-target="pr-4" onclick="go('pr-4',this)">포스터 / 배너</button>
+    <button class="nav-item" data-target="pr-5" onclick="go('pr-5',this)">로고 디자인</button>
+    <button class="nav-item" data-target="pr-6" onclick="go('pr-6',this)">랜딩페이지 제작</button>
+    <button class="nav-item" data-target="pr-7" onclick="go('pr-7',this)">와이어프레임</button>
+    <button class="nav-item" data-target="pr-8" onclick="go('pr-8',this)">바이브 코딩</button>
+  </div>
+</div>
+
+<div class="nav-divider">주차별 챌린지</div>
+<div class="nav-section open">
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>챌린지</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="nav-section-items">
+    <button class="nav-item" data-target="wk-1" onclick="go('wk-1',this)">1주차 — OT & 디자인 기초</button>
+    <button class="nav-item dim" data-target="wk-2" onclick="go('wk-2',this)">2주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-3" onclick="go('wk-3',this)">3주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-4" onclick="go('wk-4',this)">4주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-5" onclick="go('wk-5',this)">5주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-6" onclick="go('wk-6',this)">6주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-7" onclick="go('wk-7',this)">7주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-8" onclick="go('wk-8',this)">8주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-9" onclick="go('wk-9',this)">9주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-10" onclick="go('wk-10',this)">10주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-11" onclick="go('wk-11',this)">11주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-12" onclick="go('wk-12',this)">12주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-13" onclick="go('wk-13',this)">13주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-14" onclick="go('wk-14',this)">14주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-15" onclick="go('wk-15',this)">15주차 — 준비 중</button>
+    <button class="nav-item dim" data-target="wk-16" onclick="go('wk-16',this)">16주차 — 준비 중</button>
+  </div>
+</div>
+
+</nav>
+<aside class="toc" id="toc"><div class="toc-title">On this page</div></aside>
+<main class="main">
+<article id="ov-0" class="chapter active"><h1>SPEC 디자인 개요</h1>
+<h2 id="ov-h2-0-0">팀 소개 &amp; 임무</h2>
+<p>SPEC 4기 디자인팀은 SPEC의 모든 시각적 파트를 담당합니다. PPT, 카드뉴스, 배너, 포스터 등 SPEC에서 필요로 하는 시각 콘텐츠를 기획하고 제작하는 것이 핵심 임무입니다.</p>
+<p>구체적으로 다음과 같은 결과물을 제작하게 됩니다.</p>
+<ol>
+<li><strong>PPT 발표자료</strong> — 동아리 소개, 피치덱, 내부 발표 등</li>
+<li><strong>카드뉴스</strong> — 인스타그램 홍보, 스타트업 뉴스레터, 활동 기록</li>
+<li><strong>배너 &amp; 포스터</strong> — 리크루팅, 행사 홍보, X배너, 현수막</li>
+<li><strong>랜딩페이지</strong> — 동아리 소개 웹사이트</li>
+<li><strong>기타 시각물</strong> — 로고, 와이어프레임, UI 디자인</li>
+</ol>
+<h2 id="ov-h2-0-1">X(엑키스) 디자인 시스템</h2>
+<p>본 팀은 배달의민족 디자인팀에서 활용하고 있는 <strong>X(엑키스) 방법론</strong>을 도입합니다.</p>
+<p>X 방법론이란, 하나의 핵심 시각 요소를 선정하고 이를 모든 디자인에 일관되게 적용하는 방식입니다. 예를 들어 배달의민족의 경우 &#39;대리석 질감&#39;이라는 하나의 요소를 정하고, 포스터든 배너든 카드뉴스든 해당 질감을 기반으로 제작합니다. 이를 통해 별도의 디자인 가이드라인 없이도 자연스럽게 일관성 있는 결과물이 만들어집니다.</p>
+<p>SPEC 디자인팀 역시 우리만의 X 요소를 선정하여 모든 시각물에 적용할 예정입니다. 이를 통해 SPEC의 브랜드 정체성이 시각적으로 통일되는 효과를 기대할 수 있습니다.</p>
+<h2 id="ov-h2-0-2">방향성</h2>
+<p>본 팀은 다음 세 가지 방향으로 운영됩니다.</p>
+<ol>
+<li><p><strong>AI 도구 적극 활용</strong> — 디자인 비전공자도 AI 도구를 활용하여 실무급 결과물을 제작할 수 있습니다. 다양한 AI 디자인 도구를 실험하고, 효과적인 것은 팀의 표준 워크플로우로 채택합니다.</p>
+</li>
+<li><p><strong>원칙 기반 디자인</strong> — 감각에 의존하지 않고 검증된 디자인 원칙(CRAP, 시각적 위계, 색상 이론 등)을 기반으로 작업합니다. 원칙을 알면 AI 도구에 더 정확한 지시를 내릴 수 있습니다.</p>
+</li>
+<li><p><strong>실전 중심</strong> — 이론 학습에 그치지 않고 매주 실제 SPEC 홍보물을 제작합니다. 만들고, 피드백 받고, 개선하는 과정을 반복합니다.</p>
+</li>
+</ol>
+</article>
+<article id="db-0" class="chapter"><h1>비전공자를 위한 디자인 기초</h1>
+<blockquote>
+<p><strong>SPEC 4기 디자인팀 전용 교육자료</strong>
+본 자료는 디자인을 전공하지 않은 분이 실무에서 쓸 수 있는 수준까지 빠르게 올라가기 위해 제작되었습니다.
+이론보다 감각, 감각보다 원칙. 원칙을 알면 AI 도구도 제대로 활용하실 수 있습니다.</p>
+</blockquote>
+<hr>
+<h1>Chapter 0. 왜 디자인을 알아야 하는가?</h1>
+<blockquote>
+<p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
+<ol>
+<li>디자인 원칙에 이름을 붙이는 것이 왜 중요한가</li>
+<li>&quot;감각&quot;이라는 말의 실체</li>
+<li>AI 시대에 디자인 원칙이 더욱 중요해지는 이유</li>
+</ol>
+</blockquote>
+<p>성균관대 게시판에 붙어 있는 동아리 모집 포스터를 떠올려보시기 바랍니다. 그 중에서 기억에 남는 것이 있으십니까?</p>
+<p>아마 없을 것입니다. 대부분의 포스터는 보는 순간 뇌에서 삭제됩니다. 다만 가끔 &quot;어, 이거 뭐지?&quot; 하고 발걸음을 멈추게 만드는 포스터가 있습니다. 그 차이가 무엇인지 알면, 본 자료를 읽을 이유가 생깁니다.</p>
+<hr>
+<h2 id="db-h2-0-0">원칙 0-1. 이름의 법칙</h2>
+<p>이름을 붙이면 보이기 시작합니다.</p>
+<p>로빈 윌리엄스(Robin Williams)라는 디자이너가 쓴 책에 이런 이야기가 나옵니다.</p>
+<blockquote>
+<p>&quot;나는 조슈아 트리를 평생 봐왔지만, 그게 조슈아 트리인 줄 몰랐다. 누군가 이름을 알려준 날, 갑자기 그 나무가 어디에나 보이기 시작했다.&quot;</p>
+</blockquote>
+<p>조슈아 트리(Joshua Tree)는 미국 캘리포니아 사막에 자라는 독특하게 생긴 나무입니다. 한번 이름을 알고 나면 어디서든 눈에 띄게 됩니다. 그 전까지는 그냥 &quot;이상하게 생긴 나무&quot; 중 하나였을 뿐입니다.</p>
+<p>디자인도 마찬가지입니다. &quot;대비(Contrast)&quot;, &quot;정렬(Alignment)&quot;, &quot;여백(White Space)&quot; 같은 개념에 이름을 붙이는 순간, 갑자기 세상이 달라 보입니다. 카페 메뉴판을 보면서 &quot;아, 이거 정렬이 엉망이네&quot;가 보이고, 잘 만든 포스터를 보면서 &quot;여기서 대비를 이렇게 썼구나&quot;가 읽히기 시작합니다.</p>
+<p>본 자료의 목적은 딱 하나입니다. <strong>디자인 원칙에 이름을 붙여드리는 것입니다.</strong></p>
+<p>이름을 알면 보이고, 보이면 만들 수 있습니다.</p>
+<hr>
+<h2 id="db-h2-0-1">원칙 0-2. 기초의 법칙</h2>
+<p>17년차 디자인 업계 종사자에게 이런 말을 들은 적이 있습니다.</p>
+<blockquote>
+<p>&quot;메시지 전달, 의도 전달이 중요하다고 하는데, 그건 예쁘다는 게 기본으로 깔려 있는 상태의 얘기다. 예쁘게 만드는 건 기본적으로 갖추고 있어야 한다.&quot;</p>
+</blockquote>
+<p>이 말이 처음엔 다소 충격적으로 들리실 수 있습니다. &quot;디자인은 예쁜 게 전부가 아니잖아요?&quot; 맞습니다. 하지만 그 말은 이미 예쁜 것을 전제로 한 이야기입니다.</p>
+<p>축구로 비유하면 이렇습니다. &quot;축구는 체력만이 전부가 아니야, 전술이 중요해&quot;라는 말은 기본 체력이 있는 사람에게 하는 말입니다. 체력이 없으면 전술을 쓸 기회조차 없기 때문입니다. 디자인도 마찬가지입니다. 시각적으로 기본 이상은 되어야 메시지가 전달됩니다. 못생긴 포스터는 아무도 읽지 않습니다. 읽히지 않는 포스터는 아무리 좋은 메시지를 담아도 의미가 없습니다.</p>
+<p>그래서 우리는 &quot;예쁘게 만드는 법&quot;부터 배웁니다. 이것이 기초입니다.</p>
+<hr>
+<h2 id="db-h2-0-2">원칙 0-3. 훈련의 법칙</h2>
+<p>&quot;저는 감각이 없어서요...&quot;</p>
+<p>디자인 얘기만 나오면 이런 말씀을 하시는 분이 꼭 있습니다. 솔직히 말씀드리면, 이건 핑계에 가깝습니다.</p>
+<p>같은 17년차 디자이너의 말을 다시 빌리면:</p>
+<blockquote>
+<p>&quot;감각이 중요하다? 옛말이다. 보기 좋은 것들은 굉장히 많은 훈련을 통해서 만들어진다. 많이 그리고 많이 만들고. 감각이 뛰어나지 않으면 디자인할 수 없다? 헛말이다.&quot;</p>
+</blockquote>
+<p>감각처럼 보이는 것들의 정체는 대부분 <strong>반복 훈련으로 쌓인 패턴 인식</strong>입니다. 좋은 디자인을 많이 보고, 많이 따라 만들고, 많이 실패하면서 눈이 높아집니다. 타고난 것이 아니라 쌓인 것입니다.</p>
+<p>물론 타고난 감각이 있으면 더 빠르게 올라갑니다. 하지만 없어도 괜찮습니다. 원칙을 알고 훈련하면 충분히 실무 수준에 도달하실 수 있습니다. 본 자료가 그 훈련의 시작점입니다.</p>
+<p>또 하나의 흔한 오해가 있습니다. &quot;디자인은 그림을 잘 그려야 하는 거 아닌가요?&quot; 실무 현장 이야기를 들어보면, 10명 중 2명은 비전공자였다고 합니다. 그림을 잘 못 그려도 디자인을 잘 하시는 분이 분명히 있습니다. 지금 우리가 만드는 것은 포스터, 배너, 카드뉴스, PPT입니다. 이것을 만드는 데 손으로 그림을 그리는 능력은 거의 필요하지 않습니다. 필요한 것은 <strong>구성하는 능력</strong>, 즉 어떤 요소를 어디에 어떻게 배치할지 판단하는 능력입니다. 그리고 그 판단 능력은 원칙에서 나옵니다.</p>
+<hr>
+<h2 id="db-h2-0-3">원칙 0-4. AI 시대의 법칙</h2>
+<p>&quot;AI가 다 해주는데 굳이 원칙을 배워야 하나요?&quot;</p>
+<p>이 질문, 충분히 이해합니다. 다만 함께 생각해보시기 바랍니다.</p>
+<p>AI는 효율적인 결과물을 뽑아냅니다. 프롬프트를 넣으면 그럴듯한 포스터가 나옵니다. 빠르고 편합니다. 다만 AI가 만든 결과물은 대부분 &quot;무난합니다&quot;. 기억에 남지 않습니다. 디자이너의 역할이 바뀌고 있습니다. AI가 효율적인 결과물을 뽑을 때, 사람은 <strong>가장 잊혀지지 않는 순간을 설계</strong>해야 합니다. AI 시대의 키워드는 사람, 교감, 맥락입니다.</p>
+<p>AI에게 &quot;좋은 포스터 만들어줘&quot;라고 하면 평균적인 포스터가 나옵니다. 하지만 &quot;SPEC 4기 리크루팅 포스터인데, 타겟은 성균관대 공대생이고, 우리 팀의 분위기는 이렇고, 이 감정을 전달하고 싶어&quot;라고 하면 훨씬 다른 결과가 나옵니다. 그 차이를 만드는 것이 디자인 원칙을 아는 사람입니다. 원칙을 알아야 AI에게 제대로 된 지시를 내릴 수 있고, AI가 뽑은 결과물이 좋은지 나쁜지 판단할 수 있습니다.</p>
+<p>원칙 없이 AI를 쓰면 그냥 운에 맡기는 것입니다.</p>
+<hr>
+<h2 id="db-h2-0-4">본 자료의 사용법</h2>
+<p>본 자료는 두 파트로 나뉩니다.</p>
+<p><strong>Part 1 (지금 읽고 계신 본 자료)</strong> 은 원칙을 다룹니다. 레이아웃, 색상, 타이포그래피, 시각적 위계. 도구 없이도 이해하실 수 있는 내용들입니다. 읽으면서 &quot;아, 이래서 그게 예뻐 보였구나&quot;가 나와야 합니다.</p>
+<p><strong>Part 2</strong> 는 AI 도구로 가속하는 방법을 다룹니다. Pencil Dev, Figma, Canva, 나노바나나. Part 1의 원칙을 알고 쓰면 결과물이 완전히 달라집니다.</p>
+<p>순서가 중요합니다. 원칙 먼저, 도구 나중입니다.</p>
+<p>자, 시작하겠습니다.</p>
+<hr>
+<blockquote>
+<p><strong>한 줄 요약</strong>
+이름을 붙이면 보이고, 보이면 만들 수 있습니다. 감각은 타고나는 것이 아니라 쌓이는 것입니다.</p>
+</blockquote>
+<p>&nbsp;</p>
+<hr>
+<p>&nbsp;</p>
+</article>
+<article id="db-1" class="chapter"><h1>Chapter 1. 레이아웃의 4원칙 — C.R.A.P.</h1>
+<blockquote>
+<p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
+<ol>
+<li>대비(Contrast): 다르게 만들려면 확실하게 다르게 만드는 법</li>
+<li>반복(Repetition): 통일감과 신뢰감을 만드는 법</li>
+<li>정렬(Alignment): 모든 요소를 보이지 않는 선에 맞추는 법</li>
+<li>근접(Proximity): 관련 있는 정보를 그룹으로 묶는 법</li>
+</ol>
+</blockquote>
+<p>이 원칙을 모르면 디자인이 진짜 쓰레기가 됩니다. 그래서 이름도 쓰레기입니다.</p>
+<p>C.R.A.P. 맞습니다, 영어로 쓰레기라는 뜻입니다. 로빈 윌리엄스가 일부러 이렇게 이름 붙였습니다. 기억하기 쉽게. 그리고 솔직히, 이 원칙을 모르면 디자인이 진짜 쓰레기가 되기도 하기 때문입니다.</p>
+<p>이 네 가지가 레이아웃의 전부입니다. 과장이 아닙니다. 이 네 가지만 제대로 지켜도 &quot;어, 이거 꽤 잘 만들었는데?&quot;라는 말을 들으실 수 있습니다. 하나씩 살펴보겠습니다.</p>
+<hr>
+<h2 id="db-h2-1-0">원칙 1. 대비의 법칙 (Contrast)</h2>
+<p>대비의 원칙은 간단합니다. <strong>다르게 만들려면 확실하게 다르게 만들어야 합니다.</strong></p>
+<p>비슷하게 만드는 것이 가장 위험합니다. 제목이랑 본문이 비슷한 크기면 어디가 제목인지 알 수 없습니다. 강조하고 싶은 단어가 주변 텍스트랑 비슷한 굵기면 강조가 되지 않습니다. 중요한 버튼이 배경이랑 비슷한 색이면 아무도 누르지 않습니다. 중간 지점은 오히려 혼란을 야기합니다.</p>
+<p>대비를 만드는 방법은 다음과 같이 다섯 가지입니다.</p>
+<table>
+<thead>
+<tr>
+<th>요소</th>
+<th>대비 방법</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>글자 크기</td>
+<td>제목은 본문의 2~3배 이상</td>
+</tr>
+<tr>
+<td>굵기</td>
+<td>Bold vs Regular, 확실하게 차이 내기</td>
+</tr>
+<tr>
+<td>색상</td>
+<td>밝은 배경에 어두운 글자, 또는 반대</td>
+</tr>
+<tr>
+<td>형태</td>
+<td>둥근 것 vs 각진 것</td>
+</tr>
+<tr>
+<td>공간</td>
+<td>빽빽한 영역 vs 여백이 많은 영역</td>
+</tr>
+</tbody></table>
+<p>초보자가 가장 많이 하는 실수는 &quot;조금 크게&quot; 하는 것입니다. 제목을 본문보다 조금만 크게 만들면 어정쩡해집니다. 차이가 있긴 한데 확실하지 않아서 오히려 어색하게 됩니다. 대비는 <strong>과감하게</strong> 해야 합니다. 제목이 본문보다 1.2배 크면 대비가 아닙니다. 2배, 3배는 되어야 합니다.</p>
+<h3>실전 예시</h3>
+<p><strong>[Before ❌] 동아리 모집 포스터</strong></p>
+<pre><code>SPEC 4기 디자인팀 모집
+함께 성장할 팀원을 찾습니다
+모집 기간: 3월 10일 ~ 3월 20일
+지원 방법: 구글폼 작성
+문의: @spec_design
+</code></pre>
+<p>모든 텍스트가 비슷한 크기, 비슷한 굵기입니다. 어디를 먼저 봐야 할지 모르고, 눈이 갈 곳을 찾지 못합니다.</p>
+<p><strong>[After ✅] 대비를 적용한 포스터</strong></p>
+<pre><code>SPEC 4기 디자인팀 모집   ← 3배 크게, Bold
+─────────────────────
+함께 성장할 팀원을 찾습니다   ← 중간 크기, 색상 다르게
+
+모집 기간  3월 10일 ~ 3월 20일   ← 작게, 회색
+지원 방법  구글폼 작성
+문의       @spec_design
+</code></pre>
+<p>제목이 압도적으로 큽니다. 눈이 자연스럽게 제목 → 부제 → 세부사항 순서로 이동합니다.</p>
+<p><strong>[Before ❌] 팀플 발표자료 슬라이드</strong></p>
+<p>슬라이드 제목이 본문 텍스트랑 폰트 크기 차이가 4pt밖에 나지 않습니다. 제목이 18pt, 본문이 14pt. 어디가 제목인지 한눈에 들어오지 않습니다.</p>
+<p><strong>[After ✅] 대비 적용</strong></p>
+<p>제목 28pt Bold, 본문 14pt Regular. 두 배 차이입니다. 이제 슬라이드를 멀리서 봐도 구조가 보입니다.</p>
+<h3>체크 포인트</h3>
+<blockquote>
+<p>&quot;이 디자인에서 가장 중요한 정보가 한눈에 보이는가?&quot;
+&quot;비슷해 보이는 요소들이 있다면, 의도한 건가 아니면 실수인가?&quot;</p>
+</blockquote>
+<hr>
+<h2 id="db-h2-1-1">원칙 2. 반복의 법칙 (Repetition)</h2>
+<p>반복은 <strong>같은 시각 요소를 여러 곳에서 반복해서 통일감을 만드는 것</strong>입니다.</p>
+<p>같은 색, 같은 폰트, 같은 아이콘 스타일, 같은 선 굵기. 이것들이 반복되면 &quot;이건 하나의 시리즈구나&quot;, &quot;이건 같은 브랜드구나&quot;라는 느낌이 생깁니다. 반복이 없으면 어떻게 될까요? 매 페이지마다 다른 폰트, 다른 색, 다른 스타일. 보는 사람이 혼란스러워집니다. 뭔가 정신없고 아마추어 같아 보이게 됩니다.</p>
+<p>반복이 만드는 것은 세 가지입니다.</p>
+<ol>
+<li><strong>통일감</strong> — 여러 요소가 하나처럼 보입니다.</li>
+<li><strong>신뢰감</strong> — 일관성 있는 디자인은 전문적으로 보입니다.</li>
+<li><strong>브랜드 인식</strong> — 반복되는 요소가 곧 브랜드가 됩니다.</li>
+</ol>
+<h3>실전 예시</h3>
+<p><strong>[Before ❌] 인스타 카드뉴스 시리즈</strong></p>
+<p>1장: 파란 배경, 나눔고딕 폰트, 원형 아이콘
+2장: 흰 배경, 맑은고딕 폰트, 사각형 아이콘
+3장: 노란 배경, 고딕 폰트, 아이콘 없음</p>
+<p>이것이 같은 시리즈라고 해도 보는 사람은 알 수 없습니다. 그냥 따로따로 만든 것처럼 보입니다.</p>
+<p><strong>[After ✅] 반복 원칙 적용</strong></p>
+<p>모든 장에서 다음 요소를 통일합니다.</p>
+<ul>
+<li>배경색: 항상 흰색 + 포인트 컬러(SPEC 브랜드 컬러)</li>
+<li>폰트: 제목은 항상 Pretendard Bold, 본문은 항상 Pretendard Regular</li>
+<li>로고: 항상 오른쪽 하단 같은 위치</li>
+<li>색상 바: 항상 상단에 같은 두께로</li>
+</ul>
+<p>이제 1장만 봐도 &quot;아, SPEC 카드뉴스구나&quot;가 보입니다.</p>
+<p><strong>[Before ❌] PPT 발표자료</strong></p>
+<p>슬라이드마다 제목 위치가 다르고, 강조 색상이 파란색이었다가 빨간색이었다가 초록색이었다가 합니다. 폰트도 슬라이드마다 다릅니다.</p>
+<p><strong>[After ✅] 반복 적용</strong></p>
+<ul>
+<li>제목: 항상 왼쪽 상단, 항상 같은 폰트와 크기</li>
+<li>강조 색상: 전체에서 딱 하나만 (예: 파란색)</li>
+<li>구분선: 항상 같은 두께, 같은 색</li>
+</ul>
+<p>발표자료가 하나의 덩어리처럼 보입니다.</p>
+<h3>반복의 함정</h3>
+<p>반복이 좋다고 해서 모든 것을 똑같이 만들면 지루해집니다. 반복은 <strong>핵심 요소</strong>에 적용하고, 나머지는 변화를 주어야 합니다. 폰트와 색상은 반복하되, 이미지와 레이아웃은 변화를 주는 것이 균형입니다.</p>
+<h3>체크 포인트</h3>
+<blockquote>
+<p>&quot;이 디자인에서 반복되는 요소가 있는가?&quot;
+&quot;시리즈물이라면, 한 장만 봐도 같은 시리즈인 걸 알 수 있는가?&quot;</p>
+</blockquote>
+<hr>
+<h2 id="db-h2-1-2">원칙 3. 정렬의 법칙 (Alignment)</h2>
+<p>정렬의 원칙은 이것입니다. <strong>모든 요소는 다른 요소와 시각적 연결이 있어야 합니다.</strong></p>
+<p>아무 데나 놓으면 안 됩니다. 텍스트, 이미지, 아이콘, 선 — 모든 것이 보이지 않는 선에 맞춰 정렬되어야 합니다. 정렬이 잘 된 디자인은 &quot;깔끔하다&quot;는 느낌을 줍니다. 정렬이 안 된 디자인은 &quot;뭔가 어수선하다&quot;는 느낌을 줍니다. 다만 대부분의 사람들은 왜 어수선한지 정확히 알지 못합니다. 그냥 느낌으로 압니다.</p>
+<p>초보자가 가장 많이 하는 실수가 <strong>모든 걸 가운데 정렬</strong>하는 것입니다. 가운데 정렬이 나쁜 것은 아닙니다. 하지만 모든 텍스트를 가운데 정렬하면 각 줄의 시작점이 달라집니다. 눈이 다음 줄을 찾을 때마다 위치를 새로 파악해야 해서 읽기 불편합니다.</p>
+<p><strong>좌측 정렬</strong>은 모든 줄의 시작점이 같습니다. 눈이 자연스럽게 흐릅니다. 그래서 본문 텍스트는 대부분 좌측 정렬이 더 읽기 편합니다. 가운데 정렬은 제목, 짧은 문구, 대칭이 중요한 레이아웃에 사용합니다. 긴 본문에는 피하시는 것을 권해드립니다.</p>
+<h3>실전 예시</h3>
+<p><strong>[Before ❌] 포스터 텍스트 배치</strong></p>
+<pre><code>        SPEC 4기 모집
+  함께 성장할 팀원을 찾습니다
+      모집 기간: 3월 10일
+         지원: 구글폼
+</code></pre>
+<p>모든 줄이 가운데 정렬입니다. 각 줄의 시작점이 다 달라서 어수선합니다.</p>
+<p><strong>[After ✅] 좌측 정렬 적용</strong></p>
+<pre><code>SPEC 4기 모집
+함께 성장할 팀원을 찾습니다
+
+모집 기간  3월 10일
+지원       구글폼
+</code></pre>
+<p>모든 줄이 왼쪽 선에 맞춰 정렬됩니다. 깔끔합니다.</p>
+<p><strong>[Before ❌] 슬라이드 요소 배치</strong></p>
+<p>이미지는 왼쪽에서 30px 들어가 있고, 텍스트는 왼쪽에서 45px 들어가 있고, 제목은 왼쪽에서 20px 들어가 있습니다. 다 조금씩 달라서 보이지 않는 선이 세 개입니다.</p>
+<p><strong>[After ✅] 정렬선 통일</strong></p>
+<p>이미지, 텍스트, 제목 모두 왼쪽에서 40px. 보이지 않는 선이 하나입니다. 깔끔합니다.</p>
+<h3>정렬선 찾기 연습</h3>
+<p>좋은 디자인을 보면서 &quot;보이지 않는 선이 어디에 있을까?&quot;를 찾아보시는 연습을 권해드립니다. 잘 만든 포스터나 잡지 레이아웃을 보면 요소들이 몇 개의 선에 맞춰 정렬되어 있다는 것을 발견하실 수 있습니다.</p>
+<h3>체크 포인트</h3>
+<blockquote>
+<p>&quot;이 디자인에서 보이지 않는 정렬선이 몇 개인가? 적을수록 좋다.&quot;
+&quot;임의로 배치된 요소가 있는가? 있다면 어느 선에 맞출 수 있을까?&quot;</p>
+</blockquote>
+<hr>
+<h2 id="db-h2-1-3">원칙 4. 근접의 법칙 (Proximity)</h2>
+<p>근접의 원칙은 <strong>관련 있는 요소는 가까이 묶고, 관련 없는 요소는 떨어뜨리는 것</strong>입니다.</p>
+<p>사람의 눈은 가까이 있는 것들을 자동으로 &quot;같은 그룹&quot;으로 인식합니다. 이것을 이용하면 정보를 그룹으로 묶어서 한눈에 파악하기 쉽게 만들 수 있습니다.</p>
+<p>포스터에 이런 정보가 있다고 가정해보겠습니다. 행사 이름, 날짜, 시간, 장소, 주최, 문의처, 참가비. 이것을 그냥 나열하면 7개의 정보가 흩어집니다. 보는 사람이 &quot;언제 어디서 하는 거지?&quot;를 파악하려면 전체를 다 읽어야 합니다.</p>
+<p>근접 원칙을 적용하면 다음과 같이 그룹핑할 수 있습니다.</p>
+<ul>
+<li><strong>[그룹 1] 행사 정보</strong>: 날짜 / 시간 / 장소</li>
+<li><strong>[그룹 2] 참가 정보</strong>: 참가비 / 문의처</li>
+<li><strong>[그룹 3] 주최</strong>: 주최</li>
+</ul>
+<p>이렇게 묶으면 &quot;언제 어디서&quot;는 그룹 1만 보면 됩니다. 정보 파악이 훨씬 빨라집니다.</p>
+<h3>실전 예시</h3>
+<p><strong>[Before ❌] 동아리 모집 포스터</strong></p>
+<pre><code>SPEC 4기 디자인팀 모집
+
+함께 성장할 팀원을 찾습니다
+
+모집 기간: 3월 10일 ~ 3월 20일
+
+지원 방법: 구글폼 작성
+
+문의: @spec_design
+
+주최: SPEC 창업동아리
+</code></pre>
+<p>모든 항목이 같은 간격으로 나열되어 있습니다. 어떤 것이 관련 있는지 알기 어렵습니다.</p>
+<p><strong>[After ✅] 근접 원칙 적용</strong></p>
+<pre><code>SPEC 4기 디자인팀 모집
+함께 성장할 팀원을 찾습니다
+
+[큰 여백]
+
+모집 기간  3월 10일 ~ 3월 20일
+지원 방법  구글폼 작성
+문의       @spec_design
+
+[큰 여백]
+
+주최  SPEC 창업동아리
+</code></pre>
+<p>&quot;모집 기간 / 지원 방법 / 문의&quot;가 하나의 그룹으로 묶였습니다. 지원하려는 분이 필요한 정보를 한 곳에서 찾으실 수 있습니다.</p>
+<p><strong>[Before ❌] 카드뉴스 레이아웃</strong></p>
+<p>이미지와 그 이미지에 대한 설명 텍스트가 멀리 떨어져 있습니다. 어떤 텍스트가 어떤 이미지 설명인지 알기 어렵습니다.</p>
+<p><strong>[After ✅] 근접 적용</strong></p>
+<p>이미지 바로 아래에 설명 텍스트. 이미지와 설명이 하나의 그룹으로 인식됩니다.</p>
+<h3>여백도 정보입니다</h3>
+<p>근접 원칙에서 중요한 것은 <strong>그룹 사이의 여백</strong>입니다. 그룹 안의 요소들은 가까이, 그룹 사이는 멀리. 이 차이가 클수록 그룹핑이 명확해집니다. 여백이 없으면 그룹이 없는 것입니다. 모든 것이 하나의 덩어리처럼 보입니다.</p>
+<h3>체크 포인트</h3>
+<blockquote>
+<p>&quot;관련 있는 정보들이 가까이 묶여 있는가?&quot;
+&quot;그룹과 그룹 사이에 충분한 여백이 있는가?&quot;</p>
+</blockquote>
+<hr>
+<h2 id="db-h2-1-4">C.R.A.P. 실전 체크리스트</h2>
+<p>디자인을 완성하고 나서 이 체크리스트로 점검해보시기 바랍니다.</p>
+<h3>✅ 원칙 1. Contrast (대비)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> 가장 중요한 정보가 한눈에 보이는가?</li>
+<li><input disabled="" type="checkbox"> 제목과 본문의 크기 차이가 충분한가? (최소 1.5배 이상)</li>
+<li><input disabled="" type="checkbox"> 비슷해 보이는 요소들이 의도치 않게 비슷한 건 아닌가?</li>
+<li><input disabled="" type="checkbox"> 배경과 텍스트의 색상 대비가 충분한가? (읽기 어렵지 않은가?)</li>
+</ul>
+<h3>✅ 원칙 2. Repetition (반복)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> 폰트가 2~3가지 이내로 통일되어 있는가?</li>
+<li><input disabled="" type="checkbox"> 강조 색상이 일관되게 사용되고 있는가?</li>
+<li><input disabled="" type="checkbox"> 시리즈물이라면 반복되는 시각 요소가 있는가?</li>
+<li><input disabled="" type="checkbox"> 아이콘이나 그래픽 스타일이 통일되어 있는가?</li>
+</ul>
+<h3>✅ 원칙 3. Alignment (정렬)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> 임의로 배치된 요소가 없는가?</li>
+<li><input disabled="" type="checkbox"> 보이지 않는 정렬선이 최소화되어 있는가?</li>
+<li><input disabled="" type="checkbox"> 긴 본문 텍스트가 좌측 정렬되어 있는가?</li>
+<li><input disabled="" type="checkbox"> 요소들이 서로 시각적으로 연결되어 있는가?</li>
+</ul>
+<h3>✅ 원칙 4. Proximity (근접)</h3>
+<ul>
+<li><input disabled="" type="checkbox"> 관련 있는 정보들이 가까이 묶여 있는가?</li>
+<li><input disabled="" type="checkbox"> 그룹과 그룹 사이에 충분한 여백이 있는가?</li>
+<li><input disabled="" type="checkbox"> 이미지와 그 설명이 가까이 있는가?</li>
+<li><input disabled="" type="checkbox"> 정보를 파악하는 데 전체를 다 읽어야 하는가? (그렇다면 그룹핑 필요)</li>
+</ul>
+<hr>
+<blockquote>
+<p><strong>한 줄 요약</strong>
+대비는 과감하게, 반복은 일관되게, 정렬은 선에 맞게, 근접은 그룹으로. 이 네 가지만 지켜도 디자인이 달라집니다.</p>
+</blockquote>
+<p>&nbsp;</p>
+<hr>
+<p>&nbsp;</p>
+</article>
+<article id="db-2" class="chapter"><h1>Chapter 2. 시각적 위계와 구도</h1>
+<blockquote>
+<p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
+<ol>
+<li>시각적 위계를 만드는 네 가지 도구 (크기, 굵기, 색상 대비, 위치)</li>
+<li>눈이 움직이는 방향 — Z패턴과 F패턴</li>
+<li>여백의 실제 효과와 활용법</li>
+<li>그리드 시스템의 개념</li>
+<li>구도 기본 3가지 (삼분할, 중앙 배치, 대각선)</li>
+</ol>
+</blockquote>
+<p>사람들이 포스터를 보는 시간은 평균 3초입니다. 3초 안에 &quot;이게 뭔지&quot;가 전달되지 않으면 그냥 지나칩니다. 그 3초를 설계하는 것이 시각적 위계입니다.</p>
+<hr>
+<h2 id="db-h2-2-0">원칙 5. 시각적 위계의 법칙 (Visual Hierarchy)</h2>
+<p>포스터를 볼 때 우리 눈은 어떻게 움직일까요?</p>
+<p>모든 것을 동시에 보는 것 같지만, 실제로는 그렇지 않습니다. 눈은 항상 어딘가에서 시작해서 순서대로 이동합니다. 그 순서를 <strong>시각적 위계(Visual Hierarchy)</strong> 라고 합니다.</p>
+<p>잘 만든 디자인은 이 순서를 설계합니다. &quot;이걸 먼저 보고, 그 다음 이걸 보고, 마지막에 이걸 봅니다.&quot; 보는 사람이 의식하지 못하는 사이에 디자이너가 정해놓은 순서대로 정보를 받아들이게 됩니다. 못 만든 디자인은 이 순서가 없습니다. 눈이 어디서 시작해야 할지 모르고, 결국 아무것도 제대로 읽히지 않습니다.</p>
+<p>위계를 만드는 도구는 네 가지입니다.</p>
+<h3>5-1. 크기 (Scale)</h3>
+<p>가장 직관적인 방법입니다. 크면 먼저 보입니다.</p>
+<p>제목이 본문보다 크면 제목이 먼저 보입니다. 강조하고 싶은 숫자를 크게 만들면 그 숫자가 먼저 보입니다. 크기로 위계를 만드는 것은 가장 쉽고 효과적인 방법입니다.</p>
+<pre><code>[1순위] SPEC 4기 리크루팅     ← 가장 크게
+[2순위] 함께 만들어가는 팀    ← 중간 크기
+[3순위] 3월 10일 ~ 3월 20일  ← 작게
+</code></pre>
+<h3>5-2. 굵기 (Weight)</h3>
+<p>같은 크기라도 굵은 글자가 먼저 보입니다. Bold vs Regular의 차이입니다.</p>
+<p>본문 중에서 특정 단어를 강조하고 싶을 때 크기를 키우기 어렵다면 굵기를 바꾸는 것이 효과적입니다. &quot;<strong>이 부분이 중요하다</strong>&quot;처럼요.</p>
+<h3>5-3. 색상 대비 (Color Contrast)</h3>
+<p>주변과 색상 대비가 강한 요소가 먼저 보입니다. 흰 배경에 검은 글자, 어두운 배경에 밝은 글자. 또는 무채색 배경에 유채색 포인트.</p>
+<p>명품 광고에서 흰 배경에 검은 로고만 있는 이유가 있습니다. 대비가 강하면 강할수록 눈에 먼저 들어오기 때문입니다.</p>
+<h3>5-4. 위치 (Position)</h3>
+<p>사람의 눈은 왼쪽 위에서 시작하는 경향이 있습니다. 그래서 가장 중요한 정보는 왼쪽 위나 중앙 상단에 배치하는 것이 일반적입니다. 하지만 이것은 절대 법칙이 아닙니다. 의도적으로 다른 위치에 배치해서 시선을 끌 수도 있습니다.</p>
+<h3>위계 설계 실전 예시</h3>
+<p><strong>[Before ❌] 위계 없는 포스터</strong></p>
+<pre><code>SPEC 4기 디자인팀 모집 (20pt)
+함께 성장할 팀원을 찾습니다 (18pt)
+모집 기간: 3월 10일 ~ 3월 20일 (16pt)
+지원 방법: 구글폼 작성 (16pt)
+문의: @spec_design (16pt)
+</code></pre>
+<p>크기 차이가 거의 없습니다. 어디서 시작해야 할지 모르고 눈이 헤맵니다.</p>
+<p><strong>[After ✅] 3단계 위계 설계</strong></p>
+<pre><code>SPEC 4기 디자인팀 모집 (48pt, Bold)   ← 1순위: 가장 먼저 보임
+함께 성장할 팀원을 찾습니다 (24pt)    ← 2순위: 그 다음
+모집 기간  3월 10일 ~ 3월 20일 (14pt) ← 3순위: 마지막으로
+지원 방법  구글폼 작성 (14pt)
+문의       @spec_design (14pt)
+</code></pre>
+<p>눈이 자연스럽게 1순위 → 2순위 → 3순위로 이동합니다.</p>
+<hr>
+<h2 id="db-h2-2-1">원칙 6. 시선 흐름의 법칙 — Z패턴과 F패턴</h2>
+<p>눈이 움직이는 방향에는 패턴이 있습니다. 이 패턴을 알면 어디에 무엇을 배치해야 할지 알 수 있습니다.</p>
+<h3>6-1. Z패턴 — 포스터, 배너에서</h3>
+<p>포스터나 배너처럼 짧은 시간에 훑어보는 콘텐츠에서 눈은 Z자 모양으로 움직입니다.</p>
+<pre><code>┌─────────────────────────────┐
+│ ① 왼쪽 위 ──────── ② 오른쪽 위 │
+│          ↘                  │
+│           ↘                 │
+│            ↘                │
+│ ③ 왼쪽 아래 ──── ④ 오른쪽 아래 │
+└─────────────────────────────┘
+</code></pre>
+<p>① 왼쪽 위에서 시작 → ② 오른쪽 위로 이동 → ③ 왼쪽 아래로 대각선 이동 → ④ 오른쪽 아래로 이동</p>
+<p>이 패턴을 알면 각 위치에 무엇을 배치해야 할지 결정할 수 있습니다.</p>
+<ul>
+<li><strong>① 왼쪽 위</strong>: 로고, 브랜드명 (가장 먼저 보임)</li>
+<li><strong>② 오른쪽 위</strong>: 날짜, 태그라인</li>
+<li><strong>③ 왼쪽 아래</strong>: 핵심 메시지, CTA (Call to Action)</li>
+<li><strong>④ 오른쪽 아래</strong>: 연락처, QR코드</li>
+</ul>
+<p><strong>실전 적용 — 동아리 모집 포스터:</strong></p>
+<pre><code>┌─────────────────────────────┐
+│ SPEC 로고          3월 모집 │
+│                             │
+│     SPEC 4기 디자인팀       │
+│         모집합니다          │
+│                             │
+│ 지원하기 →        QR코드   │
+└─────────────────────────────┘
+</code></pre>
+<h3>6-2. F패턴 — 웹페이지, 긴 글에서</h3>
+<p>웹페이지나 긴 텍스트를 읽을 때 눈은 F자 모양으로 움직입니다.</p>
+<pre><code>┌─────────────────────────────┐
+│ ━━━━━━━━━━━━━━━━━━━━━━━━━━ │  ← 첫 줄은 끝까지 읽음
+│ ━━━━━━━━━━━━━━━━━━━━        │  ← 두 번째 줄은 조금 덜 읽음
+│ ━━━━━━━━━━━━                │  ← 점점 덜 읽음
+│ ━━━━━━━                     │
+│ ━━━━                        │
+│ ━━                          │
+└─────────────────────────────┘
+</code></pre>
+<p>왼쪽 세로 방향으로 훑으면서, 흥미로운 부분에서 가로로 읽습니다. 오른쪽으로 갈수록 읽히지 않습니다.</p>
+<p>이것이 중요한 이유는, <strong>중요한 정보는 왼쪽에 배치해야 한다</strong>는 뜻이기 때문입니다. 오른쪽에 중요한 정보를 넣으면 읽히지 않을 수 있습니다. 카드뉴스나 SNS 홍보물에서도 마찬가지입니다. 핵심 메시지는 왼쪽 또는 상단에 배치하시는 것이 좋습니다.</p>
+<hr>
+<h2 id="db-h2-2-2">원칙 7. 여백의 법칙 (White Space)</h2>
+<p>여백은 &quot;아무것도 없는 공간&quot;이 아닙니다. 여백은 디자인에서 가장 강력한 도구 중 하나입니다.</p>
+<p>초보 디자이너일수록 빈 공간을 채우려는 경향이 있습니다. 포스터에 빈 곳이 보이면 텍스트를 넣고, 이미지를 넣고, 장식을 넣습니다. 그러나 이것은 디자인의 완성도를 오히려 떨어뜨리는 행위입니다.</p>
+<p>명품 브랜드의 광고를 떠올려보십시오. 루이비통, 샤넬, 에르메스의 광고는 화면의 80% 이상이 여백입니다. 제품 하나와 브랜드 로고만 놓여 있을 뿐입니다. 이 여백이 &quot;고급스러움&quot;이라는 감정을 만들어냅니다. 빽빽하게 채운 디자인은 저렴해 보입니다. 여백이 많은 디자인은 자신감 있어 보입니다. &quot;우리 제품은 이것 하나로 충분하다&quot;는 메시지입니다.</p>
+<p>반대로 전단지를 생각해보시기 바랍니다. 빽빽하게 채워진 텍스트, 형광색 강조, 여백 없음. 이것이 전단지 느낌입니다.</p>
+<p>정리하자면, 여백의 법칙은 다음과 같습니다.</p>
+<ol>
+<li>빈 공간은 채워야 할 대상이 아니라, 의도적으로 설계해야 할 요소입니다.</li>
+<li>여백이 많을수록 핵심 메시지에 시선이 집중됩니다.</li>
+<li>텍스트 주변에 여백이 있으면 읽기 편합니다.</li>
+<li>고급스러운 디자인일수록 여백의 비율이 높습니다.</li>
+</ol>
+<h3>실전 적용</h3>
+<p><strong>[Before ❌] 여백 없는 카드뉴스</strong></p>
+<p>텍스트가 카드 가장자리까지 꽉 차 있습니다. 이미지와 텍스트 사이에 공간이 없어서 답답합니다.</p>
+<p><strong>[After ✅] 여백 적용</strong></p>
+<p>카드 가장자리에서 최소 20~30px 안쪽에서 시작. 이미지와 텍스트 사이에 16px 이상 여백. 숨이 쉬어집니다.</p>
+<blockquote>
+<p><strong>팁</strong>: 여백이 부족하다 싶으면 텍스트를 줄여보시기 바랍니다. 정보를 줄이는 것이 더 좋은 디자인입니다.</p>
+</blockquote>
+<hr>
+<h2 id="db-h2-2-3">원칙 8. 그리드의 법칙 (Grid System)</h2>
+<p>그리드는 <strong>보이지 않는 격자선</strong>입니다. 모든 요소가 이 선에 맞춰 정렬됩니다.</p>
+<p>신문을 생각해보시기 바랍니다. 기사들이 칸칸이 나뉘어 있습니다. 그 칸이 그리드입니다. 보이지 않는 선이 있어서 모든 기사가 그 선에 맞춰 배치됩니다. 그리드가 있으면 정렬이 자동으로 되고, 일관성이 생기며, 레이아웃 결정이 빨라집니다.</p>
+<p>자주 쓰는 그리드는 두 가지입니다.</p>
+<p><strong>인스타 카드뉴스 — 3단 그리드</strong></p>
+<pre><code>┌───┬───┬───┐
+│   │   │   │
+│   │   │   │
+│   │   │   │
+└───┴───┴───┘
+</code></pre>
+<p>카드를 세로로 3등분합니다. 텍스트는 1<del>2단, 이미지는 2</del>3단 이런 식으로 배치합니다.</p>
+<p><strong>PPT 발표자료 — 12단 그리드</strong></p>
+<pre><code>┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐
+│ │ │ │ │ │ │ │ │ │ │ │ │
+└─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘
+</code></pre>
+<p>12단으로 나누면 2단, 3단, 4단, 6단 레이아웃을 자유롭게 조합하실 수 있습니다.</p>
+<p>Figma에서 프레임을 선택하고 오른쪽 패널에서 &quot;Layout Grid&quot;를 추가하면 됩니다. 컬럼 수와 간격을 설정하면 보이지 않는 선이 생깁니다. 이 선에 맞춰 요소를 배치하면 자동으로 정렬됩니다. (도구 사용법은 Part 2에서 자세히 다룹니다. 여기서는 개념만 다룹니다.)</p>
+<hr>
+<h2 id="db-h2-2-4">원칙 9. 구도의 법칙 (Composition)</h2>
+<p>구도는 <strong>요소들을 어떻게 배치할 것인가</strong>의 문제입니다. 사진 찍을 때도 구도를 잡듯이, 디자인에서도 구도가 있습니다. 구도는 크게 세 가지로 나뉩니다.</p>
+<h3>9-1. 삼분할 법칙 (Rule of Thirds)</h3>
+<p>화면을 가로 3등분, 세로 3등분해서 9개의 칸을 만듭니다. 그 선들이 교차하는 4개의 점이 <strong>시선이 자연스럽게 가는 위치</strong>입니다.</p>
+<pre><code>┌───┬───┬───┐
+│   │   │   │
+├───┼───┼───┤  ← 교차점 4개가 핵심 위치
+│   │ ✦ │ ✦ │
+├───┼───┼───┤
+│   │ ✦ │ ✦ │
+└───┴───┴───┘
+</code></pre>
+<p>주인공 요소(제목, 핵심 이미지)를 이 교차점 근처에 배치하면 자연스럽고 안정적인 구도가 됩니다.</p>
+<p><strong>실전 적용 — 포스터:</strong> 제목 텍스트를 왼쪽 상단 교차점에, 핵심 이미지를 오른쪽 하단 교차점에 배치해보시기 바랍니다. 대각선으로 균형이 잡힙니다.</p>
+<h3>9-2. 중앙 배치 (대칭의 힘)</h3>
+<p>모든 요소를 정중앙에 배치하는 구도입니다. 대칭이 주는 안정감과 권위감이 있습니다.</p>
+<pre><code>┌─────────────────────────────┐
+│                             │
+│         [로고/이미지]        │
+│                             │
+│          핵심 메시지         │
+│                             │
+│           부제목             │
+│                             │
+└─────────────────────────────┘
+</code></pre>
+<p>명품 브랜드, 공식 행사 포스터, 졸업식 초대장 같은 데서 많이 사용합니다. 격식 있고 안정적인 느낌입니다. 단점은 지루해 보일 수 있다는 것입니다. 역동적인 느낌이 필요하면 다른 구도를 사용하시기 바랍니다.</p>
+<p><strong>실전 적용 — 공식 행사 포스터:</strong> SPEC 창립 기념 행사, 데모데이 포스터 같은 격식 있는 자리에 어울립니다.</p>
+<h3>9-3. 대각선 구도 (다이나믹한 느낌)</h3>
+<p>요소들을 대각선 방향으로 배치하는 구도입니다. 움직임과 에너지가 느껴집니다.</p>
+<pre><code>┌─────────────────────────────┐
+│ [요소 A]                    │
+│          ↘                  │
+│           [요소 B]          │
+│                    ↘        │
+│                    [요소 C] │
+└─────────────────────────────┘
+</code></pre>
+<p>스포츠, 게임, 에너지 드링크 광고에서 많이 보이는 구도입니다. 역동적이고 젊은 느낌입니다.</p>
+<p><strong>실전 적용 — 리크루팅 포스터:</strong> &quot;우리 팀은 활동적이고 역동적이다&quot;는 이미지를 주고 싶을 때 적용해보시기 바랍니다. 텍스트와 이미지를 대각선으로 배치하면 됩니다.</p>
+<hr>
+<h2 id="db-h2-2-5">구도 선택 가이드</h2>
+<table>
+<thead>
+<tr>
+<th>상황</th>
+<th>추천 구도</th>
+<th>이유</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>공식 행사, 격식 있는 자리</td>
+<td>중앙 배치</td>
+<td>안정감, 권위감</td>
+</tr>
+<tr>
+<td>일반 홍보 포스터</td>
+<td>삼분할 법칙</td>
+<td>자연스럽고 균형 잡힘</td>
+</tr>
+<tr>
+<td>역동적인 이미지 필요</td>
+<td>대각선 구도</td>
+<td>에너지, 움직임</td>
+</tr>
+<tr>
+<td>카드뉴스, 정보 전달</td>
+<td>그리드 기반</td>
+<td>가독성, 일관성</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="db-h2-2-6">Chapter 2 체크리스트</h2>
+<p>디자인을 완성하고 나서 이 질문들을 점검해보시기 바랍니다.</p>
+<h3>시각적 위계</h3>
+<ul>
+<li><input disabled="" type="checkbox"> 가장 중요한 정보가 가장 먼저 보이는가?</li>
+<li><input disabled="" type="checkbox"> 1순위 → 2순위 → 3순위 순서가 명확한가?</li>
+<li><input disabled="" type="checkbox"> 크기, 굵기, 색상으로 위계가 만들어져 있는가?</li>
+</ul>
+<h3>시선 흐름</h3>
+<ul>
+<li><input disabled="" type="checkbox"> 포스터라면 Z패턴을 고려했는가?</li>
+<li><input disabled="" type="checkbox"> 중요한 정보가 왼쪽 또는 상단에 있는가?</li>
+<li><input disabled="" type="checkbox"> 눈이 자연스럽게 흐르는가, 아니면 헤매는가?</li>
+</ul>
+<h3>여백</h3>
+<ul>
+<li><input disabled="" type="checkbox"> 빈 공간을 억지로 채우려 하지 않았는가?</li>
+<li><input disabled="" type="checkbox"> 텍스트 주변에 충분한 여백이 있는가?</li>
+<li><input disabled="" type="checkbox"> 가장자리에서 충분히 안쪽에서 시작하는가?</li>
+</ul>
+<h3>구도</h3>
+<ul>
+<li><input disabled="" type="checkbox"> 이 디자인의 목적에 맞는 구도를 선택했는가?</li>
+<li><input disabled="" type="checkbox"> 요소들이 그리드에 맞춰 정렬되어 있는가?</li>
+<li><input disabled="" type="checkbox"> 전체적으로 균형이 잡혀 있는가?</li>
+</ul>
+<hr>
+<blockquote>
+<p><strong>한 줄 요약</strong>
+눈이 가는 순서를 설계하시기 바랍니다. 여백은 낭비가 아니라 디자인입니다. 구도는 목적에 맞게 선택하면 됩니다.</p>
+</blockquote>
+<p>&nbsp;</p>
+<hr>
+<p>&nbsp;</p>
+<h2 id="db-h2-2-7">Part 1을 마치며</h2>
+<p>Chapter 0에서 2까지 읽으셨다면 이제 디자인을 보는 눈이 조금 달라지셨을 것입니다.</p>
+<p>카페 메뉴판을 보면서 &quot;정렬이 엉망이네&quot;가 보이고, 잘 만든 포스터를 보면서 &quot;여기서 대비를 이렇게 썼구나&quot;가 읽히기 시작하셨다면 성공입니다. 이름을 붙이면 보이고, 보이면 만들 수 있습니다.</p>
+<p>본 자료에서 다룬 원칙을 정리하면 다음과 같습니다.</p>
+<ol>
+<li><strong>원칙 0-1. 이름의 법칙</strong> — 이름을 붙이면 보이기 시작합니다.</li>
+<li><strong>원칙 0-2. 기초의 법칙</strong> — 예쁘게 만드는 것이 모든 것의 전제입니다.</li>
+<li><strong>원칙 0-3. 훈련의 법칙</strong> — 감각은 타고나는 것이 아니라 쌓이는 것입니다.</li>
+<li><strong>원칙 0-4. AI 시대의 법칙</strong> — 원칙을 알아야 AI를 제대로 쓸 수 있습니다.</li>
+<li><strong>원칙 1. 대비의 법칙</strong> — 다르게 만들려면 확실하게 다르게 만드십시오.</li>
+<li><strong>원칙 2. 반복의 법칙</strong> — 통일감이 신뢰감을 만듭니다.</li>
+<li><strong>원칙 3. 정렬의 법칙</strong> — 모든 요소는 보이지 않는 선에 맞춰야 합니다.</li>
+<li><strong>원칙 4. 근접의 법칙</strong> — 관련 있는 것은 가까이, 없는 것은 떨어뜨립니다.</li>
+<li><strong>원칙 5. 시각적 위계의 법칙</strong> — 눈이 가는 순서를 설계합니다.</li>
+<li><strong>원칙 6. 시선 흐름의 법칙</strong> — Z패턴과 F패턴을 활용합니다.</li>
+<li><strong>원칙 7. 여백의 법칙</strong> — 여백은 낭비가 아니라 디자인입니다.</li>
+<li><strong>원칙 8. 그리드의 법칙</strong> — 보이지 않는 뼈대가 레이아웃을 잡아줍니다.</li>
+<li><strong>원칙 9. 구도의 법칙</strong> — 목적에 맞는 구도를 선택합니다.</li>
+</ol>
+<p><strong>다음 단계:</strong></p>
+<ol>
+<li>지금 당장 주변의 디자인 하나를 골라서 CRAP 체크리스트로 점검해보시기 바랍니다.</li>
+<li>기존에 만든 포스터나 카드뉴스를 꺼내서 시각적 위계가 있는지 확인해보시기 바랍니다.</li>
+<li>Part 2에서는 이 원칙들을 AI 도구로 빠르게 구현하는 방법을 다룹니다.</li>
+</ol>
+<p>원칙을 알고 도구를 쓰는 것과 모르고 쓰는 것은 결과물이 완전히 달라집니다.</p>
+<hr>
+<p><em>SPEC 4기 디자인팀 교육자료 | Part 1 완</em></p>
+</article>
+<article id="db-3" class="chapter"><h1>디자인 기초 Part 2 — 색, 글자, 이미지</h1>
+<blockquote>
+<p>SPEC 4기 디자인팀 교육자료 | 비전공자를 위한 실전 디자인 가이드</p>
+</blockquote>
+<hr>
+<h1>Chapter 3. 색의 언어</h1>
+<blockquote>
+<p>&quot;색 감각이 타고난다고? 색상환 하나만 외우면 절대 망하지 않습니다.&quot;</p>
+</blockquote>
+<p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
+<ol>
+<li>컬러 휠의 구조와 색이 만들어지는 원리</li>
+<li>실전에서 바로 쓸 수 있는 5가지 색 조합 법칙</li>
+<li>따뜻한 색과 차가운 색의 용도 구분</li>
+<li>명도, 채도, 색조를 조절하는 방법</li>
+<li>RGB와 CMYK의 차이, 그리고 인쇄 전 주의사항</li>
+<li>색 심리학과 실전 도구 활용법</li>
+</ol>
+<p>색 조합이 어렵게 느껴지는 이유는 단 하나입니다. &quot;느낌으로&quot; 고르기 때문입니다. 색에는 수백 년 동안 검증된 규칙이 존재합니다. 그 규칙을 이해하시면 &quot;이 색 왜 이상하지?&quot;라는 상황이 90% 사라지게 됩니다.</p>
+<hr>
+<h2 id="db-h2-3-0">3-1. 컬러 휠, 한 번만 제대로 이해하기</h2>
+<p>색상환은 색들의 관계를 원형으로 배치한 지도입니다. 이 지도를 머릿속에 넣어두시면 색 조합이 훨씬 수월해집니다.</p>
+<p>색이 만들어지는 순서는 다음과 같습니다.</p>
+<pre><code>1차색 (Primary)
+빨강 + 파랑 + 노랑
+       ↓
+2차색 (Secondary)
+빨강+노랑 = 주황
+노랑+파랑 = 초록
+파랑+빨강 = 보라
+       ↓
+3차색 (Tertiary)
+1차색과 2차색을 섞은 색
+빨강+주황 = 주홍, 노랑+초록 = 연두, 파랑+보라 = 남색 ... 등 6가지
+</code></pre>
+<p>이렇게 총 12색이 원형으로 배치된 것이 12색 색상환입니다. 시계 방향으로 빨강 → 주홍 → 주황 → 노랑 → 연두 → 초록 → 청록 → 파랑 → 남색 → 보라 → 자주 → 다시 빨강 순으로 이어집니다.</p>
+<p>이 원에서 <strong>어떤 위치의 색을 고르느냐</strong>가 색 조합의 전부입니다.</p>
+<hr>
+<h2 id="db-h2-3-1">3-2. 안 망하는 색 조합 5가지</h2>
+<h3>원칙 1. 보색 조합의 법칙 — 강렬하게 튀고 싶을 때</h3>
+<p>보색이란 색상환에서 정반대에 위치한 두 색을 의미합니다. 빨강과 초록, 파랑과 주황, 노랑과 보라가 대표적인 보색 관계입니다. 보색 조합은 강렬한 시각적 대비를 만들어내며, 이벤트 포스터나 세일 배너처럼 강한 시선 집중이 필요한 디자인에 효과적으로 활용됩니다.</p>
+<p>다만, 두 색을 50:50으로 사용하면 시각적 피로감을 유발할 수 있습니다. 따라서 한 색을 주조색(70%)으로, 반대 색을 포인트 색(30%)으로 소량 사용하는 것이 기본 공식입니다.</p>
+<blockquote>
+<p>실전 예시: 크리스마스 포스터가 빨강+초록인 이유가 바로 보색 조합입니다. 수백 년 동안 써온 조합이니 당연히 효과가 검증되어 있습니다.</p>
+</blockquote>
+<h3>원칙 2. 유사색 조합의 법칙 — 자연스럽고 편안하게</h3>
+<p>유사색이란 색상환에서 옆에 붙어 있는 3~4가지 색의 조합을 의미합니다. 파랑+남색+보라, 노랑+연두+초록, 주황+빨강+주홍이 그 예입니다. 자연에서 가장 많이 보이는 조합이라 눈이 편안합니다. 일몰 사진이 주황+빨강+노랑으로 아름다운 것도 유사색 덕분입니다.</p>
+<p>포스터나 카드뉴스 배경 그라데이션을 만드실 때 유사색을 활용하시면 실패 확률이 매우 낮아집니다.</p>
+<h3>원칙 3. 삼색 조합의 법칙 — 활기차고 균형 있게</h3>
+<p>삼색 조합은 색상환을 120도 간격으로 3등분한 색을 활용하는 방식입니다. 빨강+노랑+파랑(1차색 조합), 주황+초록+보라(2차색 조합)가 대표적입니다. 세 색이 균형을 이루면서도 각각 개성이 있어서 활기찬 느낌을 줍니다. 어린이 대상 콘텐츠나 축제 홍보물에 자주 활용됩니다.</p>
+<p>주의할 점이 있습니다. 세 색의 채도를 통일하지 않으면 산만해 보이므로, 채도 수준을 맞춰서 사용하시기 바랍니다.</p>
+<h3>원칙 4. 분할보색 조합의 법칙 — 보색보다 안전한 대비</h3>
+<p>분할보색은 보색의 양옆 색을 활용하는 방법입니다. 보색의 강렬함은 살리면서 충돌감을 줄여주는 효과가 있습니다. 예를 들어 파랑의 보색은 주황인데, 주황 대신 주황 양옆인 노랑+빨강을 쓰는 방식입니다. 결과적으로 파랑+노랑+빨강 조합이 됩니다.</p>
+<p>보색 조합이 너무 강렬하게 느껴지실 때 이 방법으로 한 단계 부드럽게 조정하실 수 있습니다.</p>
+<h3>원칙 5. 단색 조합의 법칙 — 가장 안전한 선택</h3>
+<p>단색 조합은 한 가지 색의 명도와 채도만 바꾸는 방식입니다. 진한 파랑+중간 파랑+연한 파랑, 진한 초록+파스텔 초록+민트처럼 같은 색 계열 안에서 변주를 줍니다. 실패 확률이 거의 없고 세련되며 통일감 있어 보입니다.</p>
+<p>처음 디자인을 시작하시거나 색 조합이 막막하게 느껴지실 때, 단색 조합부터 시작해 보시기를 권해드립니다.</p>
+<hr>
+<h2 id="db-h2-3-2">3-3. 따뜻한 색 vs 차가운 색</h2>
+<p>색상환을 반으로 나누면 따뜻한 색과 차가운 색으로 나뉩니다. 두 계열은 전달하는 감정과 적합한 용도가 명확히 다릅니다.</p>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>색</th>
+<th>느낌</th>
+<th>언제 쓰나</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>따뜻한 색</td>
+<td>빨강, 주황, 노랑, 분홍</td>
+<td>에너지, 열정, 친근함, 따뜻함</td>
+<td>리크루팅 포스터, 이벤트, 음식</td>
+</tr>
+<tr>
+<td>차가운 색</td>
+<td>파랑, 남색, 보라, 청록</td>
+<td>차분, 신뢰, 전문성, 이성적</td>
+<td>기업 PT, 금융, 기술, 의료</td>
+</tr>
+</tbody></table>
+<p>동아리 리크루팅 포스터를 만드신다면 따뜻한 색 계열이 유리합니다. &quot;우리 팀 재밌어요, 같이 해요!&quot;라는 메시지를 색이 먼저 전달해줍니다. 반면 투자자 앞에서 발표하는 스타트업 PT라면 차가운 색이 더 적합합니다. 파랑 계열은 &quot;우리는 믿을 수 있는 팀입니다&quot;라는 신뢰감을 전달합니다.</p>
+<p>같은 내용이라도 색 하나로 느낌이 완전히 달라진다는 점을 기억해두시기 바랍니다.</p>
+<hr>
+<h2 id="db-h2-3-3">3-4. 명도, 채도, 색조 — 색을 조절하는 3가지 손잡이</h2>
+<p>색을 골랐다고 끝이 아닙니다. 조절하실 수 있는 손잡이가 3개 더 있습니다.</p>
+<h3>3-4-1. 명도 (Brightness) — 밝기 조절</h3>
+<p>명도는 색의 밝고 어두운 정도를 의미합니다. 같은 빨강이라도 흰색을 섞으면 분홍이 되고, 검정을 섞으면 와인색이 됩니다.</p>
+<table>
+<thead>
+<tr>
+<th>용어</th>
+<th>의미</th>
+<th>예시</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tint (틴트)</td>
+<td>흰색을 섞어 밝게</td>
+<td>빨강 → 분홍</td>
+</tr>
+<tr>
+<td>Shade (쉐이드)</td>
+<td>검정을 섞어 어둡게</td>
+<td>빨강 → 와인색</td>
+</tr>
+<tr>
+<td>Tone (톤)</td>
+<td>회색을 섞어 탁하게</td>
+<td>빨강 → 벽돌색</td>
+</tr>
+</tbody></table>
+<h3>3-4-2. 채도 (Saturation) — 선명함 조절</h3>
+<p>채도는 색의 선명하고 탁한 정도를 의미합니다. 채도가 높으면 색이 선명하고 강렬합니다. 낮추면 부드럽고 고급스러워 보입니다. 파스텔톤은 채도를 낮추고 명도를 높인 것이며, 네온톤은 채도를 최대로 높인 것입니다. 채도를 0으로 낮추면 흑백 무채색이 됩니다.</p>
+<p>실전에서 디자인이 촌스러워 보인다면 채도를 10~20% 낮춰보시기 바랍니다. 대부분 훨씬 세련되어 보입니다. 채도가 너무 높은 것이 촌스러움의 주된 원인인 경우가 많습니다.</p>
+<h3>3-4-3. 색조 (Hue) — 색 자체를 바꾸기</h3>
+<p>색조는 색상환에서 어떤 위치의 색인지를 나타냅니다. 빨강, 파랑, 초록처럼 색의 종류 자체를 의미합니다. 명도와 채도를 조절하기 전에 먼저 색조를 결정하는 것이 올바른 순서입니다.</p>
+<hr>
+<h2 id="db-h2-3-4">3-5. RGB vs CMYK — 이걸 모르면 인쇄하고 후회합니다</h2>
+<p>포스터를 인쇄하고 나서 &quot;색이 왜 이래요?&quot;라고 당황하신 경험을 들어보셨을 것입니다. 이것이 바로 RGB와 CMYK를 구분하지 못해서 생기는 문제입니다.</p>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>RGB</th>
+<th>CMYK</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>용도</td>
+<td>화면 (SNS, 웹, 영상)</td>
+<td>인쇄 (포스터, 현수막, 명함)</td>
+</tr>
+<tr>
+<td>원리</td>
+<td>빛의 혼합 (더하면 밝아짐)</td>
+<td>잉크의 혼합 (더하면 어두워짐)</td>
+</tr>
+<tr>
+<td>색 범위</td>
+<td>더 넓음 (선명한 색 표현 가능)</td>
+<td>더 좁음 (일부 색 표현 불가)</td>
+</tr>
+</tbody></table>
+<p>RGB로 디자인하고 CMYK로 인쇄하면 색이 달라집니다. 특히 선명한 파랑, 초록, 형광색은 인쇄하면 탁해집니다. 포스터나 현수막을 인쇄소에 맡기실 때는 반드시 파일을 CMYK로 변환해서 보내셔야 합니다.</p>
+<p>Figma는 기본이 RGB이므로, 인쇄용 파일은 Adobe Illustrator나 Photoshop에서 CMYK로 변환하시거나, 인쇄소에 &quot;RGB 파일인데 CMYK 변환 부탁드립니다&quot;라고 요청하시면 됩니다.</p>
+<hr>
+<h2 id="db-h2-3-5">3-6. 색 심리학 — 색이 전달하는 메시지</h2>
+<p>색에는 사람들이 공통적으로 느끼는 감정이 있습니다. 이를 이해하시면 디자인의 목적에 맞는 색을 선택하실 수 있습니다.</p>
+<table>
+<thead>
+<tr>
+<th>색</th>
+<th>연상 이미지</th>
+<th>활용 예시</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>빨강</td>
+<td>긴급, 열정, 할인, 위험</td>
+<td>이벤트 포스터, 세일 배너, 경고</td>
+</tr>
+<tr>
+<td>주황</td>
+<td>활기, 친근함, 식욕</td>
+<td>음식 브랜드, 캐주얼 이벤트</td>
+</tr>
+<tr>
+<td>노랑</td>
+<td>주의, 밝음, 활기</td>
+<td>경고 표시, 밝은 분위기 콘텐츠</td>
+</tr>
+<tr>
+<td>초록</td>
+<td>자연, 건강, 안전</td>
+<td>친환경 브랜드, 건강 관련</td>
+</tr>
+<tr>
+<td>파랑</td>
+<td>신뢰, 안정, 전문성</td>
+<td>기업 로고, 금융, IT</td>
+</tr>
+<tr>
+<td>보라</td>
+<td>창의성, 고급, 신비</td>
+<td>뷰티, 럭셔리, 예술</td>
+</tr>
+<tr>
+<td>검정</td>
+<td>고급, 권위, 세련</td>
+<td>프리미엄 브랜드, 럭셔리</td>
+</tr>
+<tr>
+<td>흰색</td>
+<td>깔끔, 순수, 미니멀</td>
+<td>의료, 미니멀 디자인</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="db-h2-3-6">3-7. 실전 도구 3가지</h2>
+<p>색 조합을 처음부터 직접 만들 필요는 없습니다. 이미 검증된 도구들이 있습니다.</p>
+<p><strong>1. Adobe Color</strong> (color.adobe.com)</p>
+<p>색상환 기반으로 보색, 유사색, 삼색 등 조합을 자동으로 만들어줍니다. 이미지를 업로드하면 그 이미지에서 색 팔레트를 추출해주는 기능도 제공됩니다.</p>
+<p><strong>2. Coolors</strong> (coolors.co)</p>
+<p>스페이스바 한 번 누를 때마다 새 팔레트가 생성됩니다. 마음에 드는 색이 나오면 자물쇠 아이콘으로 고정하고 나머지를 계속 바꾸실 수 있습니다. 5분 안에 팔레트 완성이 가능합니다.</p>
+<p><strong>3. Photo to Palette</strong></p>
+<p>레퍼런스 이미지나 마음에 드는 사진에서 색을 추출하는 기능입니다. Adobe Color와 Coolors 둘 다 지원합니다. &quot;이 사진 분위기로 만들고 싶다&quot;고 느끼실 때 사진을 업로드하시면 팔레트가 생성됩니다.</p>
+<hr>
+<h2 id="db-h2-3-7">Chapter 3 오늘의 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 컬러 휠에서 보색, 유사색, 단색 위치를 손으로 그려볼 수 있다</li>
+<li><input disabled="" type="checkbox"> 내가 만들 포스터에 따뜻한 색이 맞는지 차가운 색이 맞는지 판단할 수 있다</li>
+<li><input disabled="" type="checkbox"> 채도를 낮추면 고급스러워 보인다는 걸 실제로 테스트해봤다</li>
+<li><input disabled="" type="checkbox"> RGB와 CMYK 차이를 알고, 인쇄 전 변환이 필요하다는 걸 안다</li>
+<li><input disabled="" type="checkbox"> Coolors에서 스페이스바 눌러서 팔레트 3개 이상 만들어봤다</li>
+</ul>
+<hr>
+<hr>
+</article>
+<article id="db-4" class="chapter"><h1>Chapter 4. 타이포그래피 — 글자의 힘</h1>
+<blockquote>
+<p>&quot;폰트를 20개 설치한 여러분, 그래서 더 못 만드는 것입니다.&quot;</p>
+</blockquote>
+<p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
+<ol>
+<li>글자의 구조와 간격을 결정하는 핵심 용어</li>
+<li>폰트의 4가지 대분류와 각각의 용도</li>
+<li>폰트 2개로 완성하는 조합 원칙</li>
+<li>무료 한글 폰트 7종 완전 가이드</li>
+<li>상황별 폰트 조합 레시피 5가지</li>
+<li>폰트 레퍼런스 사이트 3곳</li>
+</ol>
+<p>&quot;디자인의 95%는 타이포그래피다.&quot; Oliver Reichenstein이 한 말입니다. 과장처럼 들릴 수 있지만, 실제로 포스터나 카드뉴스를 보면 글자가 차지하는 비중이 상당합니다. 이미지가 아무리 좋아도 글자가 엉망이면 전체가 엉망으로 보입니다. 반대로 이미지가 평범해도 글자를 잘 활용하시면 훨씬 세련되어 보입니다.</p>
+<hr>
+<h2 id="db-h2-4-0">4-1. 글자의 해부학 — 이것만 알면 됩니다</h2>
+<p>폰트 디자이너들이 쓰는 용어가 많지만, 실전에서 반드시 알아두셔야 할 것만 추렸습니다.</p>
+<h3>4-1-1. 구조 용어</h3>
+<p>글자의 구조를 이해하면 폰트를 선택하고 배치하는 기준이 생깁니다.</p>
+<p>**베이스라인 (Baseline)**은 글자들이 앉아 있는 기준선입니다. &#39;A&#39;, &#39;B&#39;, &#39;C&#39;의 아랫부분이 맞닿는 선입니다. **x높이 (x-height)**는 소문자 &#39;x&#39;의 높이로, 이 높이가 높을수록 작은 크기에서도 읽기 쉬워집니다. **어센더 (Ascender)**는 소문자 &#39;b&#39;, &#39;d&#39;, &#39;h&#39;처럼 x높이 위로 올라가는 부분이며, **디센더 (Descender)**는 소문자 &#39;g&#39;, &#39;p&#39;, &#39;y&#39;처럼 베이스라인 아래로 내려가는 부분입니다.</p>
+<h3>4-1-2. 간격 용어 — 이 부분이 특히 중요합니다</h3>
+<p>간격을 제대로 조절하는 것만으로도 디자인의 완성도가 크게 달라집니다.</p>
+<table>
+<thead>
+<tr>
+<th>용어</th>
+<th>의미</th>
+<th>실전 팁</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>자간 (Tracking)</td>
+<td>글자들 사이의 전체적인 간격</td>
+<td>좁히면 고급스럽고 무거운 느낌, 넓히면 캐주얼하고 가벼운 느낌</td>
+</tr>
+<tr>
+<td>행간 (Leading)</td>
+<td>줄과 줄 사이의 간격</td>
+<td>글자 크기의 1.4~1.6배가 황금비입니다. 너무 좁으면 답답하고, 너무 넓으면 산만해집니다</td>
+</tr>
+<tr>
+<td>커닝 (Kerning)</td>
+<td>특정 두 글자 사이의 간격 조정</td>
+<td>&#39;AV&#39;, &#39;WA&#39;처럼 특정 조합이 어색하게 붙어 보일 때 수동으로 조정합니다</td>
+</tr>
+</tbody></table>
+<p><strong>황금 공식: 행간 = 글자 크기 × 1.5</strong></p>
+<p>본문 글자가 16px이면 행간은 24px입니다. 이것만 지켜도 가독성이 크게 향상됩니다.</p>
+<hr>
+<h2 id="db-h2-4-1">4-2. 폰트의 4가지 대분류</h2>
+<p>폰트는 생김새에 따라 크게 4가지로 나뉩니다. 이 분류를 이해하시면 &quot;어떤 폰트를 써야 하지?&quot;라는 질문에 답하기 수월해집니다.</p>
+<h3>원칙 1. 세리프 (Serif) — 전통적, 신뢰감</h3>
+<p>세리프 폰트는 글자 끝에 작은 삐침(획의 마무리 장식)이 있는 폰트입니다. 신문, 책, 공식 문서에서 많이 볼 수 있습니다. 한글에서는 바탕체와 명조체가 대표적이며, 영문에서는 Times New Roman과 Georgia가 해당됩니다. 전통적이고 권위 있으며 신뢰감을 주는 느낌으로, 공식적인 문서, 고급스러운 브랜딩, 긴 본문에 적합합니다.</p>
+<h3>원칙 2. 산세리프 (Sans-serif) — 모던, 깔끔</h3>
+<p>산세리프 폰트는 삐침이 없는 폰트입니다. &#39;Sans&#39;는 프랑스어로 &quot;없다&quot;는 뜻입니다. 현대 디자인에서 가장 많이 활용됩니다. 한글에서는 고딕체와 돋움체가 대표적이며, 영문에서는 Helvetica, Arial, 프리텐다드가 해당됩니다. 모던하고 깔끔하며 중립적인 느낌으로, 디지털 콘텐츠, UI, 발표자료, 대부분의 상황에 활용됩니다.</p>
+<h3>원칙 3. 스크립트 (Script) — 감성적, 손글씨</h3>
+<p>스크립트 폰트는 손으로 쓴 것처럼 보이는 폰트입니다. 글자들이 이어지거나 흘러가는 느낌이 있습니다. 한글에서는 나눔손글씨와 배달의민족 폰트들이 대표적이며, 영문에서는 Pacifico와 Dancing Script가 해당됩니다. 감성적이고 따뜻하며 개인적인 느낌으로, 감성 포스터, 이벤트 초대장, 소셜 콘텐츠에 어울립니다.</p>
+<p>주의할 점이 있습니다. 본문에 사용하시면 읽기 어려워집니다. 짧은 제목이나 포인트 텍스트에만 활용해 주시기 바랍니다.</p>
+<h3>원칙 4. 디스플레이 (Display) — 장식적, 제목 전용</h3>
+<p>디스플레이 폰트는 특별한 개성이 있는 폰트입니다. 멀리서도 눈에 띄도록 설계되어 있습니다. 한글에서는 강원교육튼튼체, 창원단감아삭체, 배달의민족 주아체가 대표적입니다. 개성이 강하고 기억에 남는 느낌으로, 포스터 메인 타이틀이나 이벤트 헤드라인에 활용됩니다.</p>
+<p>본문에는 사용하지 않으시는 것이 좋습니다. 크게 쓸 때만 효과가 발휘됩니다.</p>
+<hr>
+<h2 id="db-h2-4-2">4-3. 폰트 2개면 충분한 이유</h2>
+<p>폰트를 많이 쓸수록 좋아 보일 것 같지만 실제로는 반대입니다. 폰트 3개 이상을 쓰는 순간 디자인이 산만해집니다. 디자인 전공자들도 대부분 2개만 활용합니다.</p>
+<p><strong>공식: 제목용 1개 + 본문용 1개 = 끝</strong></p>
+<p>핵심은 **대비(Contrast)**입니다. 두 폰트가 비슷하면 어색하고, 확실히 다르면 자연스러워집니다. 타이포그래피 이론가 Robin Williams는 폰트 조합을 3가지로 분류했습니다.</p>
+<table>
+<thead>
+<tr>
+<th>조합 유형</th>
+<th>설명</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>조화 (Concord)</td>
+<td>비슷한 폰트끼리</td>
+<td>통일감 있지만 밋밋할 수 있음</td>
+</tr>
+<tr>
+<td>충돌 (Conflict)</td>
+<td>약간 다른 폰트끼리</td>
+<td>어색하고 불편함. 피하시는 것이 좋습니다</td>
+</tr>
+<tr>
+<td>대비 (Contrast)</td>
+<td>확실히 다른 폰트끼리</td>
+<td>역동적이고 세련됨. 이 방향을 목표로 하시기 바랍니다</td>
+</tr>
+</tbody></table>
+<p>대비를 만드는 방법은 세 가지입니다. 첫째, 굵기 대비로 제목은 Bold, 본문은 Regular를 사용합니다. 둘째, 크기 대비로 제목은 크게, 본문은 작게 설정합니다. 셋째, 폰트 종류 대비로 디스플레이 제목과 산세리프 본문을 조합합니다.</p>
+<hr>
+<h2 id="db-h2-4-3">4-4. 무료 한글 폰트 7종 완전 가이드</h2>
+<p>이 섹션이 이 챕터의 핵심입니다. 비용 없이 활용하실 수 있는 폰트 중 실전에서 검증된 것들만 선별했습니다. 지금 바로 다운로드해두시면 앞으로 폰트 고민이 크게 줄어들 것입니다.</p>
+<h3>4-4-1. 제목용 폰트 (헤드라인)</h3>
+<p><strong>1. G마켓 산스 (GmarketSans)</strong></p>
+<p>깔끔하고 현대적인 산세리프 폰트입니다. G마켓에서 만들었지만 상업적으로도 무료로 활용하실 수 있습니다. 굵기가 Light, Medium, Bold 3가지라 제목부터 소제목까지 다양하게 활용됩니다.</p>
+<ul>
+<li>어울리는 용도: 포스터 제목, 배너 헤드라인, 카드뉴스 타이틀</li>
+<li>다운로드: noonnu.cc/font_page/366</li>
+<li>한 줄 평: &quot;무난하게 세련된 폰트입니다. 처음 시작하시기에 좋습니다.&quot;</li>
+</ul>
+<p><strong>2. 강원교육튼튼체</strong></p>
+<p>이름처럼 굵고 튼튼한 느낌의 폰트입니다. 강원도교육청에서 만든 폰트인데 퀄리티가 상당히 높습니다. 굵기가 있어서 대형 타이틀에 활용하시면 임팩트가 강해집니다.</p>
+<ul>
+<li>어울리는 용도: 강조 텍스트, 대형 타이틀, 트렌디한 SNS 콘텐츠</li>
+<li>다운로드: noonnu.cc/font_page/805</li>
+<li>한 줄 평: &quot;굵고 강한 인상을 줍니다. 임팩트 있는 제목에 최적입니다.&quot;</li>
+</ul>
+<p><strong>3. 에스코어드림 (S-Core Dream)</strong></p>
+<p>9가지 굵기(Thin부터 Heavy까지)를 제공하는 만능 폰트입니다. 같은 폰트 패밀리 안에서 굵기만 바꿔도 제목과 본문을 구분하실 수 있어서 폰트 조합 고민이 줄어듭니다.</p>
+<ul>
+<li>어울리는 용도: 제목, 소제목, 본문 모두 가능. 특히 발표자료</li>
+<li>다운로드: noonnu.cc/font_page/223</li>
+<li>한 줄 평: &quot;굵기 9가지를 제공합니다. 이 폰트 하나로 모든 것을 해결하실 수 있습니다.&quot;</li>
+</ul>
+<h3>4-4-2. 본문용 폰트 (가독성)</h3>
+<p><strong>4. 프리텐다드 (Pretendard)</strong></p>
+<p>현재 한국 디자인 씬에서 가장 주목받는 폰트입니다. Apple의 산돌고딕 대안으로 만들어졌으며, 화면에서 가독성이 매우 우수합니다. 굵기도 9가지라 활용도가 높습니다. 반드시 알아두시기 바랍니다.</p>
+<ul>
+<li>어울리는 용도: 본문, UI 디자인, 발표자료, 웹</li>
+<li>다운로드: noonnu.cc/font_page/694</li>
+<li>한 줄 평: &quot;현재 가장 트렌디한 폰트입니다. 꼭 알아두시기 바랍니다.&quot;</li>
+</ul>
+<p><strong>5. 본고딕 / Noto Sans KR</strong></p>
+<p>Google이 전 세계 언어를 지원하기 위해 만든 폰트입니다. 한글, 영문, 숫자, 특수문자 모두 일관된 디자인으로 제공됩니다. 글로벌 표준이라 어디서나 깨지지 않습니다.</p>
+<ul>
+<li>어울리는 용도: 본문, 웹, 다국어 콘텐츠</li>
+<li>다운로드: noonnu.cc/font_page/34</li>
+<li>한 줄 평: &quot;가장 안전한 선택입니다. 실패 확률이 없습니다.&quot;</li>
+</ul>
+<h3>4-4-3. 포인트용 폰트 (유니크)</h3>
+<p><strong>6. 창원단감아삭체</strong></p>
+<p>창원시에서 만든 폰트로, 이름처럼 아삭아삭한 개성이 있습니다. 둥글둥글하면서도 독특한 형태라 감성 콘텐츠에 잘 어울립니다.</p>
+<ul>
+<li>어울리는 용도: 포인트 텍스트, 감성 콘텐츠, 이벤트 포스터</li>
+<li>다운로드: noonnu.cc/font_page/731</li>
+<li>한 줄 평: &quot;개성 있고 귀여운 느낌을 줍니다. 감성 포스터에 잘 어울립니다.&quot;</li>
+</ul>
+<p><strong>7. 평창평화체</strong></p>
+<p>2018 평창 동계올림픽을 위해 만든 폰트입니다. 부드럽고 유니크한 형태가 특별한 이벤트나 감성적인 포스터에 잘 맞습니다.</p>
+<ul>
+<li>어울리는 용도: 감성 포스터, 특별 이벤트, 문화 콘텐츠</li>
+<li>다운로드: noonnu.cc/font_page/950</li>
+<li>한 줄 평: &quot;특별한 날을 위한 폰트입니다. 평범함을 벗어나고 싶으실 때 활용해 보시기 바랍니다.&quot;</li>
+</ul>
+<hr>
+<h2 id="db-h2-4-4">4-5. 폰트 조합 레시피 5가지</h2>
+<p>고민하지 마시고 바로 활용해 보시기 바랍니다. 상황별로 바로 적용하실 수 있는 조합입니다.</p>
+<table>
+<thead>
+<tr>
+<th>상황</th>
+<th>제목 폰트</th>
+<th>본문 폰트</th>
+<th>이유</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>리크루팅 포스터</td>
+<td>G마켓 산스 Bold</td>
+<td>프리텐다드 Regular</td>
+<td>깔끔하고 현대적. 신뢰감 있음</td>
+</tr>
+<tr>
+<td>카드뉴스</td>
+<td>에스코어드림 ExtraBold</td>
+<td>본고딕 Regular</td>
+<td>굵기 대비가 명확. 읽기 쉬움</td>
+</tr>
+<tr>
+<td>감성 이벤트</td>
+<td>창원단감아삭체</td>
+<td>프리텐다드 Regular</td>
+<td>개성 있는 제목 + 읽기 쉬운 본문</td>
+</tr>
+<tr>
+<td>공식 문서/PT</td>
+<td>본고딕 Bold</td>
+<td>본고딕 Regular</td>
+<td>같은 폰트 패밀리. 안정적</td>
+</tr>
+<tr>
+<td>트렌디 SNS</td>
+<td>강원교육튼튼체</td>
+<td>에스코어드림 Medium</td>
+<td>임팩트 있는 제목 + 세련된 본문</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="db-h2-4-5">4-6. 폰트 레퍼런스 사이트 3곳</h2>
+<p><strong>1. 눈누 (noonnu.cc)</strong></p>
+<p>한글 무료 폰트 총집합 사이트입니다. 상업적 이용 가능 여부도 표시되어 있어서 안심하고 활용하실 수 있습니다. 폰트 미리보기 텍스트를 직접 입력해보실 수 있어서 편리합니다.</p>
+<p><strong>2. Fonts In Use (fontsinuse.com)</strong></p>
+<p>실제 디자인 작업물에서 어떤 폰트가 쓰였는지 아카이빙한 사이트입니다. &quot;이 폰트가 실전에서 어떻게 쓰이는지&quot; 확인하고 싶으실 때 방문하시면 됩니다. 영문 폰트 위주이지만 영감을 얻기에 좋습니다.</p>
+<p><strong>3. 산돌구름 폰트 파인더 (sandollcloud.com)</strong></p>
+<p>이미지에서 한글 폰트를 역추적해주는 기능이 있습니다. &quot;이 포스터에 쓰인 폰트가 무엇인지&quot; 궁금하실 때 이미지를 업로드하시면 비슷한 폰트를 찾아줍니다.</p>
+<hr>
+<h2 id="db-h2-4-6">Chapter 4 오늘의 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 세리프, 산세리프, 스크립트, 디스플레이 폰트를 각각 하나씩 찾아볼 수 있다</li>
+<li><input disabled="" type="checkbox"> 행간 = 글자 크기 × 1.5 공식을 실제 디자인에 적용해봤다</li>
+<li><input disabled="" type="checkbox"> 눈누에서 폰트 3개 이상 다운로드했다</li>
+<li><input disabled="" type="checkbox"> 리크루팅 포스터용 폰트 조합을 직접 테스트해봤다</li>
+<li><input disabled="" type="checkbox"> 폰트 2개 조합으로 제목과 본문을 구분한 디자인을 만들어봤다</li>
+</ul>
+<hr>
+<hr>
+</article>
+<article id="db-5" class="chapter"><h1>Chapter 5. 이미지 다루기</h1>
+<blockquote>
+<p>&quot;예쁜 사진 골라서 넣기, 그게 디자인이라고 생각하셨다면 지금부터 바뀌게 됩니다.&quot;</p>
+</blockquote>
+<p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
+<ol>
+<li>이미지를 읽는 두 가지 층위 — 직시와 함축</li>
+<li>좋은 이미지를 고르는 3가지 원칙</li>
+<li>이미지 자르기(Crop)의 기술</li>
+<li>누끼 따기와 배경 제거 도구</li>
+<li>이미지 합성의 기초 — 레이어 개념과 빛 방향</li>
+<li>파일 형식과 용량 최적화</li>
+<li>무료 이미지 소스 4곳</li>
+</ol>
+<p>이미지를 단순히 &quot;예쁜 사진 골라서 넣기&quot;로 생각하시면 디자인이 어려워집니다. 이미지는 메시지를 전달하는 도구입니다. 어떤 이미지를 어떻게 쓰느냐에 따라 디자인의 완성도가 달라집니다.</p>
+<hr>
+<h2 id="db-h2-5-0">5-1. 이미지가 보여주는 것 vs 의미하는 것</h2>
+<p>이미지를 읽는 방법에는 두 가지 층위가 있습니다. 이 차이를 이해하지 못하시면 AI 프롬프트도, 이미지 선택도 계속 어설프게 됩니다.</p>
+<h3>5-1-1. 직시 (Denotation) — 사진에 실제로 찍힌 것</h3>
+<p>사과 사진이 있다면, 직시는 그냥 &quot;사과&quot;입니다. 빨간 색, 둥근 형태, 꼭지가 있는 과일입니다.</p>
+<h3>5-1-2. 함축 (Connotation) — 사진이 전달하는 느낌</h3>
+<p>같은 사과라도 어떻게 찍느냐에 따라 의미가 완전히 달라집니다. 밝은 조명과 흰 배경 위의 사과는 신선함, 건강, 깔끔함을 전달합니다. 어두운 조명 아래 빨간 사과 하나는 미스터리, 유혹, 위험을 암시합니다. 반쯤 베어 먹은 사과는 일상, 친근함, 자연스러움을 느끼게 합니다.</p>
+<p>이 개념은 CalArts(캘리포니아 예술대학)의 디자인 커리큘럼에서 핵심으로 다루는 내용입니다. AI 이미지 생성 프롬프트를 작성하실 때도 직결됩니다. AI로 이미지를 만드실 때 &quot;사과 사진&quot;이라고 하면 직시만 전달한 것입니다. &quot;어두운 조명 아래 빨간 사과 하나, 미스터리한 분위기&quot;라고 하시면 함축까지 전달한 것입니다. 결과물이 완전히 달라집니다.</p>
+<p>유튜버 덕디가 AI 이미지 작업에서 강조하는 것도 이 부분입니다. &quot;단순히 AI 생성자의 관점이 아닌 디렉터의 관점에서 접근하라.&quot; 어떤 이미지를 만들지 결정하는 것은 AI가 아니라 여러분이어야 합니다.</p>
+<hr>
+<h2 id="db-h2-5-1">5-2. 좋은 이미지 고르는 3원칙</h2>
+<p>이미지를 고르실 때 이 3가지를 체크해 보시기 바랍니다.</p>
+<h3>원칙 1. 해상도 — 흐릿하면 끝</h3>
+<table>
+<thead>
+<tr>
+<th>용도</th>
+<th>필요 해상도</th>
+<th>이유</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>인쇄 (포스터, 현수막)</td>
+<td>300dpi 이상</td>
+<td>인쇄하면 픽셀이 보임</td>
+</tr>
+<tr>
+<td>웹/SNS</td>
+<td>72dpi 이상</td>
+<td>화면은 72dpi면 충분</td>
+</tr>
+</tbody></table>
+<p>인터넷에서 이미지를 저장하실 때 작은 썸네일을 저장하시면 인쇄했을 때 흐릿하게 나옵니다. 이미지 파일 크기가 최소 1MB 이상인지 확인하시는 것이 간단한 기준입니다.</p>
+<h3>원칙 2. 구도 — 삼분할 법칙</h3>
+<p>이미지를 가로 3등분, 세로 3등분하면 9개의 칸이 생깁니다. 그 교차점 4곳 중 하나에 주요 피사체가 있으면 자연스럽게 안정적인 구도가 됩니다. 스마트폰 카메라 설정에서 &quot;격자 표시&quot;를 켜시면 삼분할 선이 보입니다. 사진을 찍으실 때 이 선을 기준으로 잡아보시기 바랍니다.</p>
+<h3>원칙 3. 메시지 — 이 이미지가 내 디자인을 강화하는가?</h3>
+<p>이미지가 예쁘다고 무조건 쓰시면 안 됩니다. 내 디자인이 전달하려는 메시지와 이미지가 같은 방향을 가리켜야 합니다. 리크루팅 포스터에 혼자 앉아 있는 외로운 사람 사진을 쓰시면 아무리 예뻐도 메시지가 어긋납니다. 팀이 함께 웃고 있는 사진이 메시지를 강화해줍니다.</p>
+<hr>
+<h2 id="db-h2-5-2">5-3. 이미지 자르기(Crop)의 기술</h2>
+<p>자르기는 단순히 크기를 맞추는 작업이 아닙니다. 불필요한 부분을 제거해서 메시지를 강화하는 작업입니다.</p>
+<h3>5-3-1. 인물 사진 자르기</h3>
+<p>인물 사진을 자를 때는 세 가지 원칙을 지켜주시기 바랍니다. 첫째, 머리 위에 약간의 여백을 남겨주셔야 합니다. 머리가 프레임에 딱 붙으면 답답해 보입니다. 둘째, 시선이 향하는 방향에 여백을 주셔야 합니다. 오른쪽을 보는 사람이면 오른쪽에 공간이 있어야 자연스럽습니다. 셋째, 관절 부위(무릎, 발목, 손목)에서 자르시면 어색해집니다. 관절 위나 아래에서 잘라주시기 바랍니다.</p>
+<h3>5-3-2. 제품 사진 자르기</h3>
+<p>제품이 프레임을 약간 벗어나게 자르시면 더 커 보이고 임팩트가 강해집니다. 이를 &quot;out-of-frame&quot; 기법이라고 합니다. 스마트폰 광고에서 폰이 화면 밖으로 살짝 나오는 구도를 자주 볼 수 있습니다.</p>
+<hr>
+<h2 id="db-h2-5-3">5-4. 누끼 따기 — 배경 제거</h2>
+<p>누끼는 이미지에서 배경을 제거하고 피사체만 남기는 작업입니다. 제품 사진을 깔끔한 배경 위에 올리거나, 인물을 다른 배경에 합성할 때 필요합니다. 예전엔 포토샵으로 몇 시간씩 걸리던 작업이 지금은 AI 덕분에 10초면 완료됩니다.</p>
+<p><strong>1. PhotoRoom</strong> (photoroom.com/ko)</p>
+<p>무료, 한국어 지원, AI 기반이라 정확도가 높습니다. 앱도 있어서 스마트폰에서도 활용하실 수 있습니다. 제품 사진 누끼에 특히 강합니다.</p>
+<p><strong>2. Remove.bg</strong> (remove.bg)</p>
+<p>무료, 영어 사이트이지만 사용하기 쉽습니다. 이미지를 드래그해서 올리시면 바로 배경이 제거됩니다. 인물 사진에 강합니다.</p>
+<p><strong>3. Figma 플러그인 — Remove BG</strong></p>
+<p>Figma 안에서 바로 누끼를 따실 수 있습니다. 디자인 작업 중에 이미지를 선택하고 플러그인을 실행하시면 됩니다. 작업 흐름이 끊기지 않아서 편리합니다.</p>
+<p>누끼를 딴 후 피사체 가장자리가 부자연스럽게 남아 있을 때가 있습니다. Figma나 Photoshop에서 가장자리를 약간 안쪽으로 줄이시거나(Feather 기능), 배경색과 비슷한 색으로 가장자리를 살짝 덮으시면 자연스러워집니다.</p>
+<hr>
+<h2 id="db-h2-5-4">5-5. 이미지 합성 기초</h2>
+<p>합성은 여러 이미지를 하나로 합치는 작업입니다. 배경 이미지 위에 제품을 올리거나, AI로 생성한 배경에 실제 사진을 합치는 방식입니다.</p>
+<h3>5-5-1. 레이어 개념</h3>
+<p>합성의 기본은 레이어(층)입니다. 포토샵이나 Figma에서 이미지는 층층이 쌓입니다.</p>
+<pre><code>맨 위: 텍스트 레이어
+중간: 제품/인물 레이어 (누끼 딴 것)
+아래: 배경 레이어
+</code></pre>
+<p>각 레이어를 독립적으로 수정하실 수 있어서, 배경만 바꾸거나 텍스트만 수정하는 것이 가능합니다. 유튜버 덕디의 핵심 팁을 기억해두시기 바랍니다. &quot;층을 나눠 제작하면 수정과 베리에이션 대응이 쉬워진다. 한 이미지에 모든 걸 표현하려 하지 마라.&quot; 처음부터 레이어를 잘 나눠두시면 나중에 &quot;배경만 바꿔주세요&quot;라는 요청에 5분 안에 대응하실 수 있습니다.</p>
+<h3>5-5-2. AI 배경 + 실제 사진 합성</h3>
+<p>나노바나나나 Whisk 같은 AI 이미지 생성 도구로 배경을 만들고, 거기에 누끼 딴 제품이나 인물을 올리는 방식입니다. 이때 가장 중요한 것이 <strong>빛 방향 맞추기</strong>입니다.</p>
+<p>배경 이미지에서 빛이 왼쪽에서 오는데, 올려놓은 제품에는 오른쪽에서 빛이 비치면 합성이 티가 납니다. 배경의 빛 방향을 먼저 파악하시고, 그에 맞는 제품 사진을 고르시거나, 포토샵에서 그림자 방향을 조정하셔야 합니다.</p>
+<p>합성한 이미지에 그림자를 추가하시면 훨씬 자연스러워 보입니다. Figma에서는 레이어에 Drop Shadow 효과를 추가하시면 됩니다. 그림자 방향은 배경의 빛 방향 반대로 설정해 주시기 바랍니다.</p>
+<hr>
+<h2 id="db-h2-5-5">5-6. 이미지 최적화 — 파일 형식과 용량</h2>
+<p>이미지를 어떤 형식으로 저장하느냐에 따라 용량과 품질이 달라집니다.</p>
+<table>
+<thead>
+<tr>
+<th>형식</th>
+<th>특징</th>
+<th>언제 쓰나</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JPG</td>
+<td>용량 작음, 투명 배경 불가</td>
+<td>사진, 배경 있는 이미지</td>
+</tr>
+<tr>
+<td>PNG</td>
+<td>투명 배경 가능, 용량 큼</td>
+<td>누끼 딴 이미지, 로고</td>
+</tr>
+<tr>
+<td>SVG</td>
+<td>확대해도 깨지지 않음, 용량 매우 작음</td>
+<td>로고, 아이콘, 일러스트</td>
+</tr>
+<tr>
+<td>GIF</td>
+<td>움직이는 이미지</td>
+<td>간단한 애니메이션</td>
+</tr>
+<tr>
+<td>WebP</td>
+<td>JPG보다 작고 PNG보다 선명</td>
+<td>웹 최적화</td>
+</tr>
+</tbody></table>
+<p>용량을 줄이실 때는 iLoveIMG (iloveimg.com/ko)를 활용하시기 바랍니다. 이미지를 업로드하시면 품질을 유지하면서 용량을 줄여줍니다. SNS에 올리실 때 파일 크기 제한이 있을 때 유용합니다.</p>
+<p>로고나 아이콘을 PNG로 받으셨는데 확대하면 깨질 때는 adobe.com/kr/express/feature/image/convert/png-to-svg에서 SVG로 변환하실 수 있습니다. 변환 후에는 어떤 크기로 확대하셔도 깨지지 않습니다.</p>
+<hr>
+<h2 id="db-h2-5-6">5-7. 무료 이미지 소스</h2>
+<p>직접 찍은 사진이 없으실 때 활용하실 수 있는 무료 이미지 사이트들입니다.</p>
+<table>
+<thead>
+<tr>
+<th>사이트</th>
+<th>특징</th>
+<th>주소</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Unsplash</td>
+<td>고품질 사진, 상업적 이용 가능</td>
+<td>unsplash.com</td>
+</tr>
+<tr>
+<td>Pexels</td>
+<td>사진 + 영상, 상업적 이용 가능</td>
+<td>pexels.com</td>
+</tr>
+<tr>
+<td>Pixabay</td>
+<td>사진 + 일러스트 + 벡터</td>
+<td>pixabay.com</td>
+</tr>
+<tr>
+<td>Freepik</td>
+<td>일러스트, 아이콘, 벡터 (일부 유료)</td>
+<td>freepik.com</td>
+</tr>
+</tbody></table>
+<p>무료라도 라이선스를 확인하셔야 합니다. &quot;상업적 이용 가능&quot;, &quot;저작자 표시 불필요&quot;인지 반드시 체크해 주시기 바랍니다.</p>
+<hr>
+<h2 id="db-h2-5-7">Chapter 5 오늘의 체크리스트</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 직시와 함축의 차이를 설명할 수 있다</li>
+<li><input disabled="" type="checkbox"> 삼분할 법칙을 적용해서 이미지를 자를 수 있다</li>
+<li><input disabled="" type="checkbox"> PhotoRoom이나 Remove.bg로 누끼를 따봤다</li>
+<li><input disabled="" type="checkbox"> 레이어를 나눠서 배경, 피사체, 텍스트를 각각 다른 층에 배치해봤다</li>
+<li><input disabled="" type="checkbox"> JPG, PNG, SVG의 차이를 알고 상황에 맞게 선택할 수 있다</li>
+<li><input disabled="" type="checkbox"> iLoveIMG로 이미지 용량을 줄여봤다</li>
+</ul>
+<hr>
+<h2 id="db-h2-5-8">전체 정리 — Part 2를 마치며</h2>
+<p>3개 챕터를 통해 색, 글자, 이미지라는 디자인의 3가지 핵심 요소를 다루었습니다.</p>
+<p><strong>기억할 것 3가지:</strong></p>
+<ol>
+<li><p><strong>색은 규칙입니다.</strong> 느낌으로 고르지 마시고 보색, 유사색, 단색 중 하나를 선택해 보시기 바랍니다. 채도를 낮추시면 대부분 더 세련되어 보입니다.</p>
+</li>
+<li><p><strong>폰트는 2개면 충분합니다.</strong> 제목용 1개 + 본문용 1개입니다. 대비가 핵심입니다. 눈누에서 이 챕터에 나온 폰트들을 다운로드해두시면 앞으로 폰트 고민이 줄어들 것입니다.</p>
+</li>
+<li><p><strong>이미지는 메시지입니다.</strong> 예쁜 이미지가 아니라 내 디자인의 메시지를 강화하는 이미지를 선택하셔야 합니다. 레이어를 나눠서 작업하시면 수정이 수월해집니다.</p>
+</li>
+</ol>
+<p>이 3가지를 의식하시면서 디자인하시면, 처음 만드시는 포스터도 훨씬 완성도 있어 보입니다.</p>
+<hr>
+<p><em>SPEC 4기 디자인팀 교육자료 | 2026</em></p>
+</article>
+<article id="tl-0" class="chapter"><h1>다루게 될 툴 소개</h1>
+<blockquote>
+<p>본 섹션에서는 SPEC 디자인팀이 활용하게 될 AI 도구 및 디자인 도구를 소개합니다. 각 도구의 핵심 기능과 세팅 방법을 안내합니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="tl-1" class="chapter"><h1>Genspark</h1>
+<blockquote>
+<p>리서치부터 슬라이드, 이미지, 영상, 웹사이트까지 한 곳에서 만들 수 있는 올인원 AI 플랫폼입니다.</p>
+</blockquote>
+<p>Genspark는 하나의 플랫폼 안에서 AI가 자료 조사, 발표자료 제작, 이미지 생성, 영상 제작, 웹사이트 생성을 모두 처리해 주는 도구입니다. 따로따로 여러 도구를 쓸 필요 없이 Genspark 하나로 대부분의 콘텐츠 제작 작업을 해결할 수 있습니다. 매일 무료 크레딧 100개가 지급되어 기본적인 사용은 무료로 가능합니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://www.genspark.ai">https://www.genspark.ai</a></p>
+<hr>
+</article>
+<article id="tl-2" class="chapter"><h1>Manus</h1>
+<blockquote>
+<p>복잡한 작업을 지시하면 AI가 알아서 처음부터 끝까지 완성해 주는 자율형 AI 에이전트입니다.</p>
+</blockquote>
+<p>Manus는 단순히 질문에 답하는 AI가 아니라, 주어진 목표를 스스로 계획하고 실행하는 AI입니다. &quot;이 주제로 보고서 만들어줘&quot;라고 지시하면 직접 인터넷을 검색하고, 내용을 정리하고, 문서까지 완성해서 결과물을 건네줍니다. 코드 작성이나 데이터 분석처럼 복잡한 작업도 처리할 수 있어, 여러 단계가 필요한 작업을 한 번에 맡길 수 있습니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://manus.im">https://manus.im</a></p>
+<hr>
+</article>
+<article id="tl-3" class="chapter"><h1>Snapdeck</h1>
+<blockquote>
+<p>텍스트나 문서를 붙여넣으면 AI가 발표자료로 바꿔주는 슬라이드 제작 도구입니다.</p>
+</blockquote>
+<p>Snapdeck은 내용만 입력하면 AI가 자동으로 슬라이드 구성을 잡고 디자인까지 완성해 주는 도구입니다. 직접 레이아웃을 잡거나 디자인을 고민할 필요 없이, 전달하고 싶은 내용에만 집중하면 됩니다. 발표자료를 빠르게 만들어야 할 때 특히 유용합니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://snapdeck.app">https://snapdeck.app</a></p>
+<hr>
+</article>
+<article id="tl-4" class="chapter"><h1>나노바나나 (Hailuo AI)</h1>
+<blockquote>
+<p>텍스트 설명만으로 사실적인 인물, 제품, 배경 이미지와 영상을 만들어주는 AI 생성 도구입니다.</p>
+</blockquote>
+<p>나노바나나는 Hailuo AI를 기반으로 한 AI 이미지·영상 생성 서비스입니다. 원하는 장면을 글로 설명하면 실제 사진처럼 보이는 이미지나 짧은 영상을 만들어 줍니다. 특히 인물의 표정과 감정 표현이 업계 최고 수준으로 평가받고 있어, 포스터나 홍보물에 쓸 인물 이미지를 만들 때 매우 유용합니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://hailuoai.video">https://hailuoai.video</a></p>
+<hr>
+</article>
+<article id="tl-5" class="chapter"><h1>Claude Code</h1>
+<blockquote>
+<p>자연어로 지시하면 코드 작성, 파일 수정, 웹사이트 제작까지 처리해 주는 Anthropic의 AI 코딩 에이전트입니다.</p>
+</blockquote>
+<p>Claude Code는 터미널(명령 프롬프트)에서 실행하는 AI 도구로, 코딩 지식 없이도 &quot;이런 웹사이트 만들어줘&quot;, &quot;이 파일 수정해줘&quot;처럼 말로 지시하면 AI가 직접 작업을 수행합니다. 단순한 코드 생성을 넘어 파일을 읽고, 수정하고, 실행까지 하는 에이전트 방식으로 동작합니다. 지금 보고 있는 이 사이트 자체도 Claude Code로 제작되었습니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://claude.ai/code">https://claude.ai/code</a></p>
+<hr>
+</article>
+<article id="tl-6" class="chapter"><h1>Canva</h1>
+<blockquote>
+<p>전 세계 1억 9천만 명이 쓰는 글로벌 1위 디자인 플랫폼입니다.</p>
+</blockquote>
+<p>Canva는 디자인 전문 지식 없이도 포스터, PPT, 카드뉴스, SNS 콘텐츠 등을 쉽게 만들 수 있는 도구입니다. 수천 개의 템플릿 중 마음에 드는 것을 골라 텍스트와 이미지만 바꾸면 완성도 높은 결과물이 나옵니다. Magic Design 기능을 사용하면 프롬프트 한 줄만으로 AI가 디자인을 자동 생성해 주며, 기본 기능은 무료로 사용할 수 있습니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://www.canva.com">https://www.canva.com</a></p>
+<hr>
+</article>
+<article id="tl-7" class="chapter"><h1>미리캔버스</h1>
+<blockquote>
+<p>한국 트렌드와 한국어에 최적화된 국내 1위 디자인 플랫폼입니다.</p>
+</blockquote>
+<p>미리캔버스는 Canva와 비슷한 템플릿 기반 디자인 도구이지만, 한국 감성과 트렌드에 맞는 템플릿이 풍부하고 한국어 폰트와 레이아웃이 잘 갖춰져 있습니다. AI PPT 자동 생성, AI 이미지 생성, 배경 제거 기능을 모두 무료로 사용할 수 있습니다. 한국어 콘텐츠를 만들 때는 Canva보다 미리캔버스가 더 편리한 경우가 많습니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://www.miricanvas.com">https://www.miricanvas.com</a></p>
+<hr>
+</article>
+<article id="tl-8" class="chapter"><h1>Figma</h1>
+<blockquote>
+<p>UI/UX 디자인 업계에서 가장 널리 쓰이는 표준 디자인 도구입니다.</p>
+</blockquote>
+<p>Figma는 앱이나 웹사이트의 화면을 설계하고 디자인하는 데 특화된 도구로, 전 세계 디자이너들이 실무에서 가장 많이 사용합니다. 여러 명이 동시에 같은 파일을 편집할 수 있는 실시간 협업 기능이 강점이며, 디자인한 화면이 실제로 어떻게 작동하는지 미리 보여주는 프로토타이핑 기능도 있습니다. 처음 배우는 데 시간이 조금 걸리지만, 무료 플랜으로 시작할 수 있고 익히면 가장 강력한 디자인 도구입니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://www.figma.com">https://www.figma.com</a></p>
+<hr>
+</article>
+<article id="tl-9" class="chapter"><h1>Gamma</h1>
+<blockquote>
+<p>프롬프트 한 줄로 60초 만에 완성된 발표자료를 만들어주는 AI 도구입니다.</p>
+</blockquote>
+<p>Gamma는 주제나 내용을 입력하면 AI가 슬라이드 구성, 디자인, 텍스트를 모두 자동으로 완성해 주는 발표자료 생성 도구입니다. 완성된 자료는 PPT나 Google Slides 형식으로 내보낼 수 있어 기존 작업 방식과 연결하기도 쉽습니다. 한국어를 지원하며 무료로 400크레딧이 제공됩니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://gamma.app">https://gamma.app</a></p>
+<hr>
+</article>
+<article id="tl-10" class="chapter"><h1>Ideogram</h1>
+<blockquote>
+<p>텍스트가 포함된 이미지를 정확하게 만들어주는 AI 이미지 생성 도구입니다.</p>
+</blockquote>
+<p>Ideogram은 원하는 이미지를 글로 설명하면 AI가 이미지를 생성해 주는 도구입니다. 다른 AI 이미지 도구들이 이미지 안에 글자를 넣으면 글자가 뭉개지거나 틀리게 나오는 문제가 있는 반면, Ideogram은 텍스트를 정확하게 표현하는 것이 강점입니다. 한글 텍스트 정확도도 업계 최고 수준이라 로고, 포스터, 배너 초안을 만들 때 특히 유용하며, 무료로 사용할 수 있습니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://ideogram.ai">https://ideogram.ai</a></p>
+<hr>
+</article>
+<article id="tl-11" class="chapter"><h1>Pencil Dev</h1>
+<blockquote>
+<p>캔버스에서 디자인하면 실제 작동하는 코드로 자동 변환해 주는 AI 네이티브 디자인 도구입니다.</p>
+</blockquote>
+<p>Pencil Dev는 디자인과 개발을 동시에 처리하는 도구로, 화면에서 직접 디자인하면 그 결과물이 실제 웹사이트에서 작동하는 코드(React, HTML)로 자동 변환됩니다. 디자이너가 따로 개발자에게 작업을 넘기지 않아도 되고, 코딩을 몰라도 실제로 작동하는 결과물을 만들 수 있습니다. Claude Code와 연동하면 AI가 디자인 작업까지 직접 수행할 수 있습니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://pencil.dev">https://pencil.dev</a></p>
+<hr>
+</article>
+<article id="tl-12" class="chapter"><h1>Pinterest</h1>
+<blockquote>
+<p>이미지 기반으로 디자인 레퍼런스를 검색하고 체계적으로 모아두는 플랫폼입니다.</p>
+</blockquote>
+<p>Pinterest는 전 세계 디자이너들이 영감을 얻기 위해 가장 많이 사용하는 이미지 수집 플랫폼입니다. 원하는 스타일이나 주제를 검색하면 관련 이미지가 쏟아지고, 마음에 드는 것을 보드에 저장해 레퍼런스를 정리할 수 있습니다. 디자인 작업을 시작하기 전 방향을 잡는 데 매우 유용하며, 무료로 사용할 수 있습니다.</p>
+<p><strong>공식 사이트</strong>: <a href="https://www.pinterest.com">https://www.pinterest.com</a></p>
+</article>
+<article id="rf-0" class="chapter"><h1>레퍼런스</h1>
+<blockquote>
+<p>디자인 작업 시 참고할 수 있는 레퍼런스 사이트와 자료를 모아둔 섹션입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="rf-1" class="chapter"><h1>디자인 영감</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="rf-2" class="chapter"><h1>폰트 레퍼런스</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="rf-3" class="chapter"><h1>색상 레퍼런스</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="rf-4" class="chapter"><h1>로고 레퍼런스</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="rf-5" class="chapter"><h1>템플릿 모음</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="pr-0" class="chapter"><h1>활용</h1>
+<blockquote>
+<p>위에서 소개한 도구들을 활용하여 실제 결과물을 제작하는 방법을 안내합니다. 각 카테고리별로 작업 프로세스와 팁을 정리하였습니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-1" class="chapter"><h1>PPT 제작</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-2" class="chapter"><h1>카드뉴스 제작</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-3" class="chapter"><h1>카드뉴스 자동화</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-4" class="chapter"><h1>포스터 / 배너</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-5" class="chapter"><h1>로고 디자인</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-6" class="chapter"><h1>랜딩페이지 제작</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-7" class="chapter"><h1>와이어프레임</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-8" class="chapter"><h1>바이브 코딩</h1>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-1" class="chapter"><h2 id="wk-h2-1-0">1주차 — OT &amp; 디자인 기초</h2>
+<h3>강의 목표</h3>
+<ol>
+<li>CRAP 원칙(대비, 반복, 정렬, 근접)을 이해하고 실제 디자인에서 찾아낼 수 있습니다.</li>
+<li>색상 조합과 폰트 선택의 기본 기준을 학습합니다.</li>
+<li>이미지 다루기 기초(누끼, 해상도)를 실습합니다.</li>
+</ol>
+<h3>시간 배분</h3>
+<table>
+<thead>
+<tr>
+<th>시간</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0:00~0:10</td>
+<td>아이스브레이킹 — 가장 못 만든 디자인 공유</td>
+</tr>
+<tr>
+<td>0:10~0:30</td>
+<td>Ch.0: 왜 디자인인가? (Before/After 퀴즈)</td>
+</tr>
+<tr>
+<td>0:30~0:50</td>
+<td>Ch.1~2: CRAP 원칙 + 위계/구도</td>
+</tr>
+<tr>
+<td>0:50~1:10</td>
+<td>Ch.3~4: 색상 + 타이포그래피 (폰트 조합 실습)</td>
+</tr>
+<tr>
+<td>1:10~1:20</td>
+<td>Ch.5: 이미지 다루기 (누끼 따기 데모)</td>
+</tr>
+<tr>
+<td>1:20~1:30</td>
+<td>Q&amp;A + 다음 시간 예고</td>
+</tr>
+</tbody></table>
+<h3>과제</h3>
+<ul>
+<li>눈누(noonnu.cc)에서 무료 폰트 7종 다운받아 설치하기</li>
+<li>CRAP 원칙으로 인스타그램 포스터 1개 분석해보기</li>
+</ul>
+<h3>참고 자료</h3>
+<ul>
+<li>가이드: SPEC 디자인 개요 &gt; 디자인 기초</li>
+<li>YouTube: &quot;17년차 디자인 업계인이 풀어주는 암묵적 룰&quot;</li>
+</ul>
+</article>
+<article id="wk-2" class="chapter"><h2 id="wk-h2-2-0">2주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-3" class="chapter"><h2 id="wk-h2-3-0">3주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-4" class="chapter"><h2 id="wk-h2-4-0">4주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-5" class="chapter"><h2 id="wk-h2-5-0">5주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-6" class="chapter"><h2 id="wk-h2-6-0">6주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-7" class="chapter"><h2 id="wk-h2-7-0">7주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-8" class="chapter"><h2 id="wk-h2-8-0">8주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-9" class="chapter"><h2 id="wk-h2-9-0">9주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-10" class="chapter"><h2 id="wk-h2-10-0">10주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-11" class="chapter"><h2 id="wk-h2-11-0">11주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-12" class="chapter"><h2 id="wk-h2-12-0">12주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-13" class="chapter"><h2 id="wk-h2-13-0">13주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-14" class="chapter"><h2 id="wk-h2-14-0">14주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-15" class="chapter"><h2 id="wk-h2-15-0">15주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="wk-16" class="chapter"><h2 id="wk-h2-16-0">16주차 — 준비 중</h2>
+<blockquote>
+<p>해당 주차의 챌린지는 준비 중입니다.</p>
+</blockquote>
+</article>
+</main>
+<script>
+const chapters=[{"id":"ov-0","title":"SPEC 디자인 개요","h2s":[{"title":"팀 소개 & 임무","anchor":"ov-h2-0-0"},{"title":"X(엑키스) 디자인 시스템","anchor":"ov-h2-0-1"},{"title":"방향성","anchor":"ov-h2-0-2"}]},{"id":"db-0","title":"Chapter 0. 왜 디자인을 알아야 하는가?","h2s":[{"title":"원칙 0-1. 이름의 법칙","anchor":"db-h2-0-0"},{"title":"원칙 0-2. 기초의 법칙","anchor":"db-h2-0-1"},{"title":"원칙 0-3. 훈련의 법칙","anchor":"db-h2-0-2"},{"title":"원칙 0-4. AI 시대의 법칙","anchor":"db-h2-0-3"},{"title":"본 자료의 사용법","anchor":"db-h2-0-4"}]},{"id":"db-1","title":"Chapter 1. 레이아웃의 4원칙 — C.R.A.P.","h2s":[{"title":"원칙 1. 대비의 법칙 (Contrast)","anchor":"db-h2-1-0"},{"title":"원칙 2. 반복의 법칙 (Repetition)","anchor":"db-h2-1-1"},{"title":"원칙 3. 정렬의 법칙 (Alignment)","anchor":"db-h2-1-2"},{"title":"원칙 4. 근접의 법칙 (Proximity)","anchor":"db-h2-1-3"},{"title":"C.R.A.P. 실전 체크리스트","anchor":"db-h2-1-4"}]},{"id":"db-2","title":"Chapter 2. 시각적 위계와 구도","h2s":[{"title":"원칙 5. 시각적 위계의 법칙 (Visual Hierarchy)","anchor":"db-h2-2-0"},{"title":"원칙 6. 시선 흐름의 법칙 — Z패턴과 F패턴","anchor":"db-h2-2-1"},{"title":"원칙 7. 여백의 법칙 (White Space)","anchor":"db-h2-2-2"},{"title":"원칙 8. 그리드의 법칙 (Grid System)","anchor":"db-h2-2-3"},{"title":"원칙 9. 구도의 법칙 (Composition)","anchor":"db-h2-2-4"},{"title":"구도 선택 가이드","anchor":"db-h2-2-5"},{"title":"Chapter 2 체크리스트","anchor":"db-h2-2-6"},{"title":"Part 1을 마치며","anchor":"db-h2-2-7"}]},{"id":"db-3","title":"Chapter 3. 색의 언어","h2s":[{"title":"3-1. 컬러 휠, 한 번만 제대로 이해하기","anchor":"db-h2-3-0"},{"title":"3-2. 안 망하는 색 조합 5가지","anchor":"db-h2-3-1"},{"title":"3-3. 따뜻한 색 vs 차가운 색","anchor":"db-h2-3-2"},{"title":"3-4. 명도, 채도, 색조 — 색을 조절하는 3가지 손잡이","anchor":"db-h2-3-3"},{"title":"3-5. RGB vs CMYK — 이걸 모르면 인쇄하고 후회합니다","anchor":"db-h2-3-4"},{"title":"3-6. 색 심리학 — 색이 전달하는 메시지","anchor":"db-h2-3-5"},{"title":"3-7. 실전 도구 3가지","anchor":"db-h2-3-6"},{"title":"Chapter 3 오늘의 체크리스트","anchor":"db-h2-3-7"}]},{"id":"db-4","title":"Chapter 4. 타이포그래피 — 글자의 힘","h2s":[{"title":"4-1. 글자의 해부학 — 이것만 알면 됩니다","anchor":"db-h2-4-0"},{"title":"4-2. 폰트의 4가지 대분류","anchor":"db-h2-4-1"},{"title":"4-3. 폰트 2개면 충분한 이유","anchor":"db-h2-4-2"},{"title":"4-4. 무료 한글 폰트 7종 완전 가이드","anchor":"db-h2-4-3"},{"title":"4-5. 폰트 조합 레시피 5가지","anchor":"db-h2-4-4"},{"title":"4-6. 폰트 레퍼런스 사이트 3곳","anchor":"db-h2-4-5"},{"title":"Chapter 4 오늘의 체크리스트","anchor":"db-h2-4-6"}]},{"id":"db-5","title":"Chapter 5. 이미지 다루기","h2s":[{"title":"5-1. 이미지가 보여주는 것 vs 의미하는 것","anchor":"db-h2-5-0"},{"title":"5-2. 좋은 이미지 고르는 3원칙","anchor":"db-h2-5-1"},{"title":"5-3. 이미지 자르기(Crop)의 기술","anchor":"db-h2-5-2"},{"title":"5-4. 누끼 따기 — 배경 제거","anchor":"db-h2-5-3"},{"title":"5-5. 이미지 합성 기초","anchor":"db-h2-5-4"},{"title":"5-6. 이미지 최적화 — 파일 형식과 용량","anchor":"db-h2-5-5"},{"title":"5-7. 무료 이미지 소스","anchor":"db-h2-5-6"},{"title":"Chapter 5 오늘의 체크리스트","anchor":"db-h2-5-7"},{"title":"전체 정리 — Part 2를 마치며","anchor":"db-h2-5-8"}]},{"id":"tl-0","title":"다루게 될 툴 소개","h2s":[]},{"id":"tl-1","title":"Genspark","h2s":[]},{"id":"tl-2","title":"Manus","h2s":[]},{"id":"tl-3","title":"Snapdeck","h2s":[]},{"id":"tl-4","title":"나노바나나 (Hailuo AI)","h2s":[]},{"id":"tl-5","title":"Claude Code","h2s":[]},{"id":"tl-6","title":"Canva","h2s":[]},{"id":"tl-7","title":"미리캔버스","h2s":[]},{"id":"tl-8","title":"Figma","h2s":[]},{"id":"tl-9","title":"Gamma","h2s":[]},{"id":"tl-10","title":"Ideogram","h2s":[]},{"id":"tl-11","title":"Pencil Dev","h2s":[]},{"id":"tl-12","title":"Pinterest","h2s":[]},{"id":"rf-0","title":"레퍼런스","h2s":[]},{"id":"rf-1","title":"디자인 영감","h2s":[]},{"id":"rf-2","title":"폰트 레퍼런스","h2s":[]},{"id":"rf-3","title":"색상 레퍼런스","h2s":[]},{"id":"rf-4","title":"로고 레퍼런스","h2s":[]},{"id":"rf-5","title":"템플릿 모음","h2s":[]},{"id":"pr-0","title":"활용","h2s":[]},{"id":"pr-1","title":"PPT 제작","h2s":[]},{"id":"pr-2","title":"카드뉴스 제작","h2s":[]},{"id":"pr-3","title":"카드뉴스 자동화","h2s":[]},{"id":"pr-4","title":"포스터 / 배너","h2s":[]},{"id":"pr-5","title":"로고 디자인","h2s":[]},{"id":"pr-6","title":"랜딩페이지 제작","h2s":[]},{"id":"pr-7","title":"와이어프레임","h2s":[]},{"id":"pr-8","title":"바이브 코딩","h2s":[]},{"id":"wk-1","title":"1주차: OT & 디자인 기초","h2s":[{"title":"1주차 — OT & 디자인 기초","anchor":"wk-h2-1-0"}]},{"id":"wk-2","title":"2주차: 준비 중","h2s":[{"title":"2주차 — 준비 중","anchor":"wk-h2-2-0"}]},{"id":"wk-3","title":"3주차: 준비 중","h2s":[{"title":"3주차 — 준비 중","anchor":"wk-h2-3-0"}]},{"id":"wk-4","title":"4주차: 준비 중","h2s":[{"title":"4주차 — 준비 중","anchor":"wk-h2-4-0"}]},{"id":"wk-5","title":"5주차: 준비 중","h2s":[{"title":"5주차 — 준비 중","anchor":"wk-h2-5-0"}]},{"id":"wk-6","title":"6주차: 준비 중","h2s":[{"title":"6주차 — 준비 중","anchor":"wk-h2-6-0"}]},{"id":"wk-7","title":"7주차: 준비 중","h2s":[{"title":"7주차 — 준비 중","anchor":"wk-h2-7-0"}]},{"id":"wk-8","title":"8주차: 준비 중","h2s":[{"title":"8주차 — 준비 중","anchor":"wk-h2-8-0"}]},{"id":"wk-9","title":"9주차: 준비 중","h2s":[{"title":"9주차 — 준비 중","anchor":"wk-h2-9-0"}]},{"id":"wk-10","title":"10주차: 준비 중","h2s":[{"title":"10주차 — 준비 중","anchor":"wk-h2-10-0"}]},{"id":"wk-11","title":"11주차: 준비 중","h2s":[{"title":"11주차 — 준비 중","anchor":"wk-h2-11-0"}]},{"id":"wk-12","title":"12주차: 준비 중","h2s":[{"title":"12주차 — 준비 중","anchor":"wk-h2-12-0"}]},{"id":"wk-13","title":"13주차: 준비 중","h2s":[{"title":"13주차 — 준비 중","anchor":"wk-h2-13-0"}]},{"id":"wk-14","title":"14주차: 준비 중","h2s":[{"title":"14주차 — 준비 중","anchor":"wk-h2-14-0"}]},{"id":"wk-15","title":"15주차: 준비 중","h2s":[{"title":"15주차 — 준비 중","anchor":"wk-h2-15-0"}]},{"id":"wk-16","title":"16주차: 준비 중","h2s":[{"title":"16주차 — 준비 중","anchor":"wk-h2-16-0"}]}];
+let currentIdx=0;
+function go(id,btn){document.querySelectorAll('.chapter').forEach(el=>el.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active');else{const b=document.querySelector('.nav-item[data-target="'+id+'"]');if(b)b.classList.add('active')}currentIdx=chapters.findIndex(c=>c.id===id);updateToc();addNavButtons();window.scrollTo({top:0,behavior:'smooth'});if(window.innerWidth<=768){document.querySelector('.side').classList.remove('open');document.querySelector('.overlay').classList.remove('show')}}
+function updateToc(){const toc=document.getElementById('toc');const ch=chapters[currentIdx];if(!ch||!ch.h2s||ch.h2s.length===0){toc.innerHTML='';return}let h='<div class="toc-title">On this page</div>';ch.h2s.forEach(x=>{h+='<a href="#'+x.anchor+'" onclick="event.preventDefault();smoothTo(\''+x.anchor+'\')">'+x.title.substring(0,35)+'</a>'});toc.innerHTML=h}
+function smoothTo(a){const el=document.getElementById(a);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+function addNavButtons(){document.querySelectorAll('.ch-nav').forEach(e=>e.remove());const ch=chapters[currentIdx];const article=document.getElementById(ch.id);if(!article)return;const prev=currentIdx>0?chapters[currentIdx-1]:null;const next=currentIdx<chapters.length-1?chapters[currentIdx+1]:null;const nav=document.createElement('div');nav.className='ch-nav';const pb=prev?'<button onclick="goIdx('+(currentIdx-1)+')">이전</button>':'<div></div>';const nb=next?'<button onclick="goIdx('+(currentIdx+1)+')">다음</button>':'<div></div>';nav.innerHTML=pb+nb;article.appendChild(nav)}
+function goIdx(i){const ch=chapters[i];if(!ch)return;go(ch.id)}
+function toggleMenu(){document.querySelector('.side').classList.toggle('open');document.querySelector('.overlay').classList.toggle('show')}
+function toggleSection(btn){btn.closest('.nav-section').classList.toggle('open')}
+function toggleTheme(){const html=document.documentElement;const isDark=html.getAttribute('data-theme')==='dark';html.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('themeIcon').innerHTML=isDark?'<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>':'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';localStorage.setItem('theme',isDark?'light':'dark')}
+(function(){const saved=localStorage.getItem('theme');if(saved)document.documentElement.setAttribute('data-theme',saved)})();
+updateToc();addNavButtons();
+window.addEventListener('scroll',()=>{const links=document.querySelectorAll('.toc a');if(!links.length)return;const ch=chapters[currentIdx];if(!ch||!ch.h2s)return;let active=null;ch.h2s.forEach(h=>{const el=document.getElementById(h.anchor);if(el&&el.getBoundingClientRect().top<120)active=h.anchor});links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active))});
+</script>
+</body>
+</html>
