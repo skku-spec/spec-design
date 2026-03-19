@@ -6,6 +6,8 @@ marked.setOptions({ gfm: true, breaks: false });
 
 function parseFile(filepath) {
   const md = fs.readFileSync(filepath, 'utf-8');
+  const mtime = fs.statSync(filepath).mtime;
+  const dateStr = mtime.getFullYear() + '. ' + String(mtime.getMonth()+1).padStart(2,'0') + '. ' + String(mtime.getDate()).padStart(2,'0');
   const sections = md.split(/(?=^# )/gm);
   const result = [];
   for (const section of sections) {
@@ -13,10 +15,25 @@ function parseFile(filepath) {
     const titleMatch = section.match(/^# (.+)/m);
     if (!titleMatch) continue;
     const contentLength = section.replace(/^# .+/m, '').trim().length;
-    result.push({ title: titleMatch[1].trim(), md: section, contentLength });
+    result.push({ title: titleMatch[1].trim(), md: section, contentLength, date: dateStr });
   }
   return result;
 }
+
+const logoMap = {
+  'Genspark': 'logo-genspark.png',
+  'Manus': 'logo-manus.png',
+  'Snapdeck': 'logo-snapdeck.png',
+  '나노바나나 (Hailuo AI)': 'logo-hailuo.png',
+  'Claude Code': 'logo-claude.png',
+  'Canva': 'logo-canva.png',
+  '미리캔버스': 'logo-miricanvas.png',
+  'Figma': 'logo-figma.png',
+  'Gamma': 'logo-gamma.png',
+  'Ideogram': 'logo-ideogram.png',
+  'Pencil Dev': 'logo-pencil.png',
+  'Pinterest': 'logo-pinterest.png',
+};
 
 function buildChapters(rawList, prefix, merge) {
   const chapters = [];
@@ -32,23 +49,30 @@ function buildChapters(rawList, prefix, merge) {
     let m;
     while ((m = h2Re.exec(rc.md)) !== null) h2s.push({ title: m[1].trim(), anchor: prefix + '-h2-' + id + '-' + h2s.length });
     let html = marked.parse(rc.md);
+    const titleLogo = logoMap[rc.title];
+    const logoTag = titleLogo ? '<img class="title-logo" src="' + titleLogo + '" alt="">' : '';
+    html = html.replace(/<h1>/, '<h1>' + logoTag);
+    html = html.replace(/<\/h1>/, '</h1><div class="chapter-date">' + rc.date + '&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>');
+    html = html.replace(/<a href="http/g, '<a target="_blank" rel="noopener" href="http');
+    html = html.replace(/<img src="([^"]*)" alt="([^"]*)">/g, '<img src="$1" alt="$2"><div class="img-caption">&lt; $2 &gt;</div>');
     let h2i = 0;
     html = html.replace(/<h2>/g, () => '<h2 id="' + prefix + '-h2-' + id + '-' + h2i++ + '">');
-    chapters.push({ id: prefix + '-' + id++, title: rc.title, html, h2s });
+    const isPending = rc.md.includes('준비 중입니다') || rc.md.includes('준비 중');
+    chapters.push({ id: prefix + '-' + id++, title: rc.title, html, h2s, isPending });
   }
   return chapters;
 }
 
-const overviewRaw = parseFile(`${BASE}/overview.md`);
+const overviewRaw = parseFile(`${BASE}/01-개요/overview.md`);
 const designBasicsRaw = [
-  ...parseFile(`${BASE}/part1-디자인기초-상.md`),
-  ...parseFile(`${BASE}/part2-디자인기초-하.md`),
+  ...parseFile(`${BASE}/01-개요/디자인기초-상.md`),
+  ...parseFile(`${BASE}/01-개요/디자인기초-하.md`),
 ];
 const overviewChapters = buildChapters(overviewRaw, 'ov', false);
 const designChapters = buildChapters(designBasicsRaw, 'db', true);
-const toolsChapters = buildChapters(parseFile(`${BASE}/tools.md`), 'tl', false);
-const refsChapters = buildChapters(parseFile(`${BASE}/references.md`), 'rf', false);
-const practicalChapters = buildChapters(parseFile(`${BASE}/practical.md`), 'pr', false);
+const toolsChapters = buildChapters(parseFile(`${BASE}/02-툴소개/tools.md`), 'tl', false);
+const refsChapters = buildChapters(parseFile(`${BASE}/03-레퍼런스/references.md`), 'rf', false);
+const practicalChapters = buildChapters(parseFile(`${BASE}/04-활용가이드/practical.md`), 'pr', false);
 
 const weeklyData = [
   { week: 1, title: 'OT & 디자인 기초', content: `
@@ -103,20 +127,24 @@ function sidebarSection(label, chapters, defaultOpen) {
   s += `  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>${label}</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>\n`;
   s += '  <div class="nav-section-items">\n';
   chapters.forEach(ch => {
-    s += `    <button class="nav-item" data-target="${ch.id}" onclick="go('${ch.id}',this)">${short(ch.title)}</button>\n`;
+    const logo = logoMap[ch.title];
+    const icon = logo ? `<img class="nav-logo" src="${logo}" alt="">` : '';
+    const dim = ch.isPending ? ' dim' : '';
+    const suffix = ch.isPending ? ' - 준비중' : '';
+    s += `    <button class="nav-item${dim}" data-target="${ch.id}" onclick="go('${ch.id}',this)">${icon}${short(ch.title)}${suffix}</button>\n`;
   });
   s += '  </div>\n</div>\n';
   return s;
 }
 
 let sidebar = '<div class="nav-divider">가이드</div>\n';
-sidebar += sidebarSection('1. SPEC 디자인 개요', overviewChapters, true);
-sidebar += sidebarSection('디자인 기초', designChapters, false);
-sidebar += sidebarSection('2. 툴 소개', toolsChapters, false);
-sidebar += sidebarSection('3. 레퍼런스 사이트 모음', refsChapters, false);
-sidebar += sidebarSection('4. 활용 가이드', practicalChapters, false);
+sidebar += sidebarSection('1. SPEC 디자인 개요', overviewChapters, false);
+sidebar += sidebarSection('2. 디자인 기초', designChapters, false);
+sidebar += sidebarSection('3. 툴 소개', toolsChapters, false);
+sidebar += sidebarSection('4. 레퍼런스 사이트 모음', refsChapters, false);
+sidebar += sidebarSection('5. 활용 가이드', practicalChapters, false);
 sidebar += '\n<div class="nav-divider">주차별 챌린지</div>\n';
-let ws = '<div class="nav-section open">\n';
+let ws = '<div class="nav-section">\n';
 ws += '  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>챌린지</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>\n';
 ws += '  <div class="nav-section-items">\n';
 weeklyChapters.forEach(w => {
@@ -147,6 +175,7 @@ const html = `<!DOCTYPE html>
 html{scroll-behavior:smooth}
 body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:160%;letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 .hdr{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--bg-sidebar);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;z-index:100;backdrop-filter:blur(12px)}
+.progress-bar{position:fixed;top:var(--header-h);left:0;height:6px;background:var(--primary);z-index:101;transition:width .1s linear;width:0}
 .hdr-left{display:flex;align-items:center;gap:12px}
 .hdr-menu{display:none;background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:8px;color:var(--text-bright)}
 .hdr-menu:hover{background:var(--bg-hover)}
@@ -171,6 +200,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .nav-section.open .chevron{transform:rotate(180deg)}
 .nav-section-items{max-height:0;overflow:hidden;transition:max-height .3s ease;padding-left:4px}
 .nav-section.open .nav-section-items{max-height:2000px}
+.nav-logo{width:18px;height:18px;border-radius:4px;margin-right:8px;vertical-align:middle;object-fit:contain}
 .nav-item{display:block;width:100%;text-align:left;background:none;border:none;padding:6px 12px 6px 20px;font-size:13px;font-family:inherit;color:var(--text-dim);border-radius:8px;cursor:pointer;transition:all .15s;line-height:1.5;margin-bottom:1px;border-left:2px solid transparent}
 .nav-item:hover{background:var(--bg-hover);color:var(--text-bright)}
 .nav-item.active{color:var(--primary);font-weight:600;border-left-color:var(--primary);background:var(--bg-hover)}
@@ -183,21 +213,37 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .chapter{display:none;max-width:700px;margin:0 auto;padding:48px 32px 100px;animation:fadeIn .2s ease}
 .chapter.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.chapter h1{font-size:34px;font-weight:800;color:var(--text-bright);margin:0 0 32px;line-height:130%;letter-spacing:-0.02em}
-.chapter h2{font-size:24px;font-weight:700;color:var(--text-bright);margin:48px 0 20px;padding-bottom:12px;border-bottom:1px solid var(--border);line-height:140%}
-.chapter h3{font-size:18px;font-weight:700;color:var(--primary);margin:36px 0 12px;line-height:140%}
-.chapter h4{font-size:16px;font-weight:700;color:var(--text-bright);margin:24px 0 8px}
-.chapter p{font-size:18px;line-height:160%;letter-spacing:-0.02em;color:var(--text);margin:0 0 18px}
-.chapter a{color:var(--primary);text-decoration:none;border-bottom:1px solid transparent;transition:border .15s}
-.chapter a:hover{border-bottom-color:var(--primary)}
+.chapter h1{font-size:42px;font-weight:900;color:var(--text-bright);margin:0 0 6px;line-height:130%;letter-spacing:-0.8px;word-break:keep-all}
+.title-logo{width:32px;height:32px;border-radius:6px;object-fit:contain;vertical-align:-4px;margin-right:10px;display:inline;border-radius:6px;margin-bottom:0}
+.chapter-date{font-size:14px;color:var(--text-dimmer);margin:0 0 40px;letter-spacing:-0.02em}
+.chapter h2{font-size:30px;font-weight:800;color:var(--text-bright);margin:48px 0 8px;padding:0 0 12px;border-bottom:1.5px solid var(--text-dimmer);line-height:150%;letter-spacing:-0.02em}
+.chapter h3{font-size:19px;font-weight:700;color:var(--primary);margin:32px 0 8px;padding:0 0 8px;border-bottom:1px solid var(--border);line-height:160%}
+.chapter hr{border:none;height:1.5px;background:var(--text-dimmer);margin:8px 0 20px}
+.chapter h4{font-size:18px;font-weight:700;color:var(--text-bright);margin:28px 0 10px}
+.chapter p{font-size:18px;line-height:160%;letter-spacing:-0.4px;color:var(--text);margin:0 0 16px;word-break:break-all}
+.chapter img{max-width:100%;min-width:unset;height:auto;border-radius:12px;margin:16px auto;display:block}
+.chapter img.title-logo{display:inline;width:auto;height:1.2em;max-width:none;margin:0 12px 0 0;border-radius:8px;vertical-align:middle}
+.img-caption{font-size:13px;color:var(--text-dimmer);text-align:center;margin:-8px 0 24px;font-style:italic}
+.chapter code{cursor:pointer;position:relative;transition:background .2s;background:rgba(255,108,15,0.12);color:var(--primary);padding:3px 8px;border-radius:5px;font-size:14px}
+.chapter code:hover{background:var(--primary);color:#fff}
+.chapter code.copied::after{content:'복사됨';position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-style:normal;white-space:nowrap}
+.chapter a{color:var(--primary);text-decoration:none;border-bottom:1px solid var(--primary);transition:border .15s}
+.chapter a:hover{color:var(--primary-variant);border-bottom-color:var(--primary-variant)}
 .chapter strong{font-weight:700;color:var(--text-bright)}
+.chapter p strong{color:var(--primary)}
 .chapter em{font-style:italic;color:var(--text-dim)}
-.chapter ul,.chapter ol{margin:0 0 18px;padding-left:24px;font-size:18px;line-height:160%}
+.chapter strong em,.chapter em strong{font-style:normal;font-weight:700;color:var(--primary)}
+.chapter ul,.chapter ol{margin:0 0 16px;padding-left:20px;font-size:18px;line-height:160%}
 .chapter li{margin-bottom:8px;color:var(--text)}
 .chapter li>ul,.chapter li>ol{margin-top:8px;margin-bottom:0}
-.chapter blockquote{border-left:3px solid var(--primary);background:var(--quote-bg);margin:24px 0;padding:18px 22px;border-radius:0 12px 12px 0;font-size:16px}
-.chapter blockquote p{font-size:16px;margin-bottom:8px}
+.chapter li strong{color:var(--text-bright)}
+.chapter blockquote{border-left:4px solid var(--primary);margin:20px 0;padding:20px 24px;border-radius:0 10px 10px 0;font-size:17px;line-height:170%;font-style:normal;background:rgba(255,108,15,0.08);box-shadow:none}
+.chapter blockquote p{font-size:17px;margin-bottom:12px}
 .chapter blockquote p:last-child{margin-bottom:0}
+.chapter blockquote strong{color:var(--text-bright)}
+.chapter blockquote a{color:var(--primary);border-bottom:1px solid var(--primary)}
+.chapter blockquote ol{font-size:17px;line-height:170%;margin:8px 0 0;padding-left:20px}
+.chapter blockquote ol li{margin-bottom:6px;color:var(--text);font-style:italic}
 .chapter table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
 .chapter thead th{background:var(--table-head);color:var(--text-bright);font-weight:600;padding:12px 14px;text-align:left;font-size:13px}
 [data-theme="light"] .chapter thead th{color:#fff}
@@ -214,10 +260,11 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:80}
 .overlay.show{display:block}
 @media(max-width:1100px){.toc{display:none}.main{margin-right:0}}
-@media(max-width:768px){.hdr-menu{display:flex;align-items:center;justify-content:center}.side{transform:translateX(-100%);width:280px;box-shadow:4px 0 24px var(--shadow)}.side.open{transform:translateX(0)}.main{margin-left:0}.chapter{padding:32px 20px 80px}.chapter h1{font-size:26px}.chapter h2{font-size:20px}.chapter p,.chapter li{font-size:16px}.logo-sub,.logo-divider{display:none}}
+@media(max-width:768px){.hdr-menu{display:flex;align-items:center;justify-content:center}.side{transform:translateX(-100%);width:280px;box-shadow:4px 0 24px var(--shadow)}.side.open{transform:translateX(0)}.main{margin-left:0}.chapter{padding:32px 20px 80px}.chapter h1{font-size:36px}.chapter h2{font-size:28px}.chapter h3{font-size:20px}.chapter h4{font-size:19px}.chapter p,.chapter li,.chapter ul,.chapter ol{font-size:18px}.chapter blockquote,.chapter blockquote p,.chapter blockquote ol{font-size:17px}.logo-sub,.logo-divider{display:none}}
 </style>
 </head>
 <body>
+<div class="progress-bar" id="progressBar"></div>
 <header class="hdr">
   <div class="hdr-left">
     <button class="hdr-menu" onclick="toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
@@ -238,7 +285,7 @@ ${contentHtml}
 <script>
 const chapters=${JSON.stringify(allChapters.map(c=>({id:c.id,title:c.title,h2s:c.h2s})))};
 let currentIdx=0;
-function go(id,btn){document.querySelectorAll('.chapter').forEach(el=>el.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active');else{const b=document.querySelector('.nav-item[data-target="'+id+'"]');if(b)b.classList.add('active')}currentIdx=chapters.findIndex(c=>c.id===id);updateToc();addNavButtons();window.scrollTo({top:0,behavior:'smooth'});if(window.innerWidth<=768){document.querySelector('.side').classList.remove('open');document.querySelector('.overlay').classList.remove('show')}}
+function go(id,btn){document.querySelectorAll('.chapter').forEach(el=>el.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active');else{const b=document.querySelector('.nav-item[data-target="'+id+'"]');if(b)b.classList.add('active')}currentIdx=chapters.findIndex(c=>c.id===id);history.replaceState(null,null,'#'+id);updateToc();addNavButtons();if(btn)window.scrollTo({top:0,behavior:'smooth'});if(window.innerWidth<=768){document.querySelector('.side').classList.remove('open');document.querySelector('.overlay').classList.remove('show')}}
 function updateToc(){const toc=document.getElementById('toc');const ch=chapters[currentIdx];if(!ch||!ch.h2s||ch.h2s.length===0){toc.innerHTML='';return}let h='<div class="toc-title">On this page</div>';ch.h2s.forEach(x=>{h+='<a href="#'+x.anchor+'" onclick="event.preventDefault();smoothTo(\\''+x.anchor+'\\')">'+x.title.substring(0,35)+'</a>'});toc.innerHTML=h}
 function smoothTo(a){const el=document.getElementById(a);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
 function addNavButtons(){document.querySelectorAll('.ch-nav').forEach(e=>e.remove());const ch=chapters[currentIdx];const article=document.getElementById(ch.id);if(!article)return;const prev=currentIdx>0?chapters[currentIdx-1]:null;const next=currentIdx<chapters.length-1?chapters[currentIdx+1]:null;const nav=document.createElement('div');nav.className='ch-nav';const pb=prev?'<button onclick="goIdx('+(currentIdx-1)+')">이전</button>':'<div></div>';const nb=next?'<button onclick="goIdx('+(currentIdx+1)+')">다음</button>':'<div></div>';nav.innerHTML=pb+nb;article.appendChild(nav)}
@@ -247,8 +294,10 @@ function toggleMenu(){document.querySelector('.side').classList.toggle('open');d
 function toggleSection(btn){btn.closest('.nav-section').classList.toggle('open')}
 function toggleTheme(){const html=document.documentElement;const isDark=html.getAttribute('data-theme')==='dark';html.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('themeIcon').innerHTML=isDark?'<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>':'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';localStorage.setItem('theme',isDark?'light':'dark')}
 (function(){const saved=localStorage.getItem('theme');if(saved)document.documentElement.setAttribute('data-theme',saved)})();
+if(location.hash){const hid=location.hash.slice(1);const ch=chapters.find(c=>c.id===hid);if(ch){go(hid);window.scrollTo(0,parseInt(sessionStorage.getItem('scrollY')||'0'))}}
 updateToc();addNavButtons();
-window.addEventListener('scroll',()=>{const links=document.querySelectorAll('.toc a');if(!links.length)return;const ch=chapters[currentIdx];if(!ch||!ch.h2s)return;let active=null;ch.h2s.forEach(h=>{const el=document.getElementById(h.anchor);if(el&&el.getBoundingClientRect().top<120)active=h.anchor});links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active))});
+document.addEventListener('click',function(e){if(e.target.tagName==='CODE'&&e.target.closest('.chapter')){const text=e.target.textContent;navigator.clipboard.writeText(text).then(()=>{e.target.classList.add('copied');setTimeout(()=>e.target.classList.remove('copied'),1200)})}});
+window.addEventListener('scroll',()=>{sessionStorage.setItem('scrollY',window.scrollY);const pb=document.getElementById('progressBar');const h=document.documentElement.scrollHeight-window.innerHeight;pb.style.width=h>0?(window.scrollY/h*100)+'%':'0%';const links=document.querySelectorAll('.toc a');if(!links.length)return;const ch=chapters[currentIdx];if(!ch||!ch.h2s)return;let active=null;ch.h2s.forEach(h2=>{const el=document.getElementById(h2.anchor);if(el&&el.getBoundingClientRect().top<120)active=h2.anchor});links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active))});
 </script>
 </body>
 </html>`;

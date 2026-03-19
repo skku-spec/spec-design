@@ -13,6 +13,7 @@
 html{scroll-behavior:smooth}
 body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:160%;letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 .hdr{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--bg-sidebar);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;z-index:100;backdrop-filter:blur(12px)}
+.progress-bar{position:fixed;top:var(--header-h);left:0;height:6px;background:var(--primary);z-index:101;transition:width .1s linear;width:0}
 .hdr-left{display:flex;align-items:center;gap:12px}
 .hdr-menu{display:none;background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:8px;color:var(--text-bright)}
 .hdr-menu:hover{background:var(--bg-hover)}
@@ -37,6 +38,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .nav-section.open .chevron{transform:rotate(180deg)}
 .nav-section-items{max-height:0;overflow:hidden;transition:max-height .3s ease;padding-left:4px}
 .nav-section.open .nav-section-items{max-height:2000px}
+.nav-logo{width:18px;height:18px;border-radius:4px;margin-right:8px;vertical-align:middle;object-fit:contain}
 .nav-item{display:block;width:100%;text-align:left;background:none;border:none;padding:6px 12px 6px 20px;font-size:13px;font-family:inherit;color:var(--text-dim);border-radius:8px;cursor:pointer;transition:all .15s;line-height:1.5;margin-bottom:1px;border-left:2px solid transparent}
 .nav-item:hover{background:var(--bg-hover);color:var(--text-bright)}
 .nav-item.active{color:var(--primary);font-weight:600;border-left-color:var(--primary);background:var(--bg-hover)}
@@ -49,21 +51,37 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .chapter{display:none;max-width:700px;margin:0 auto;padding:48px 32px 100px;animation:fadeIn .2s ease}
 .chapter.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.chapter h1{font-size:34px;font-weight:800;color:var(--text-bright);margin:0 0 32px;line-height:130%;letter-spacing:-0.02em}
-.chapter h2{font-size:24px;font-weight:700;color:var(--text-bright);margin:48px 0 20px;padding-bottom:12px;border-bottom:1px solid var(--border);line-height:140%}
-.chapter h3{font-size:18px;font-weight:700;color:var(--primary);margin:36px 0 12px;line-height:140%}
-.chapter h4{font-size:16px;font-weight:700;color:var(--text-bright);margin:24px 0 8px}
-.chapter p{font-size:18px;line-height:160%;letter-spacing:-0.02em;color:var(--text);margin:0 0 18px}
-.chapter a{color:var(--primary);text-decoration:none;border-bottom:1px solid transparent;transition:border .15s}
-.chapter a:hover{border-bottom-color:var(--primary)}
+.chapter h1{font-size:42px;font-weight:900;color:var(--text-bright);margin:0 0 6px;line-height:130%;letter-spacing:-0.8px;word-break:keep-all}
+.title-logo{width:32px;height:32px;border-radius:6px;object-fit:contain;vertical-align:-4px;margin-right:10px;display:inline;border-radius:6px;margin-bottom:0}
+.chapter-date{font-size:14px;color:var(--text-dimmer);margin:0 0 40px;letter-spacing:-0.02em}
+.chapter h2{font-size:30px;font-weight:800;color:var(--text-bright);margin:48px 0 8px;padding:0 0 12px;border-bottom:1.5px solid var(--text-dimmer);line-height:150%;letter-spacing:-0.02em}
+.chapter h3{font-size:19px;font-weight:700;color:var(--primary);margin:32px 0 8px;padding:0 0 8px;border-bottom:1px solid var(--border);line-height:160%}
+.chapter hr{border:none;height:1.5px;background:var(--text-dimmer);margin:8px 0 20px}
+.chapter h4{font-size:18px;font-weight:700;color:var(--text-bright);margin:28px 0 10px}
+.chapter p{font-size:18px;line-height:160%;letter-spacing:-0.4px;color:var(--text);margin:0 0 16px;word-break:break-all}
+.chapter img{max-width:100%;min-width:unset;height:auto;border-radius:12px;margin:16px auto;display:block}
+.chapter img.title-logo{display:inline;width:auto;height:1.2em;max-width:none;margin:0 12px 0 0;border-radius:8px;vertical-align:middle}
+.img-caption{font-size:13px;color:var(--text-dimmer);text-align:center;margin:-8px 0 24px;font-style:italic}
+.chapter code{cursor:pointer;position:relative;transition:background .2s;background:rgba(255,108,15,0.12);color:var(--primary);padding:3px 8px;border-radius:5px;font-size:14px}
+.chapter code:hover{background:var(--primary);color:#fff}
+.chapter code.copied::after{content:'복사됨';position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-style:normal;white-space:nowrap}
+.chapter a{color:var(--primary);text-decoration:none;border-bottom:1px solid var(--primary);transition:border .15s}
+.chapter a:hover{color:var(--primary-variant);border-bottom-color:var(--primary-variant)}
 .chapter strong{font-weight:700;color:var(--text-bright)}
+.chapter p strong{color:var(--primary)}
 .chapter em{font-style:italic;color:var(--text-dim)}
-.chapter ul,.chapter ol{margin:0 0 18px;padding-left:24px;font-size:18px;line-height:160%}
+.chapter strong em,.chapter em strong{font-style:normal;font-weight:700;color:var(--primary)}
+.chapter ul,.chapter ol{margin:0 0 16px;padding-left:20px;font-size:18px;line-height:160%}
 .chapter li{margin-bottom:8px;color:var(--text)}
 .chapter li>ul,.chapter li>ol{margin-top:8px;margin-bottom:0}
-.chapter blockquote{border-left:3px solid var(--primary);background:var(--quote-bg);margin:24px 0;padding:18px 22px;border-radius:0 12px 12px 0;font-size:16px}
-.chapter blockquote p{font-size:16px;margin-bottom:8px}
+.chapter li strong{color:var(--text-bright)}
+.chapter blockquote{border-left:4px solid var(--primary);margin:20px 0;padding:20px 24px;border-radius:0 10px 10px 0;font-size:17px;line-height:170%;font-style:normal;background:rgba(255,108,15,0.08);box-shadow:none}
+.chapter blockquote p{font-size:17px;margin-bottom:12px}
 .chapter blockquote p:last-child{margin-bottom:0}
+.chapter blockquote strong{color:var(--text-bright)}
+.chapter blockquote a{color:var(--primary);border-bottom:1px solid var(--primary)}
+.chapter blockquote ol{font-size:17px;line-height:170%;margin:8px 0 0;padding-left:20px}
+.chapter blockquote ol li{margin-bottom:6px;color:var(--text);font-style:italic}
 .chapter table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
 .chapter thead th{background:var(--table-head);color:var(--text-bright);font-weight:600;padding:12px 14px;text-align:left;font-size:13px}
 [data-theme="light"] .chapter thead th{color:#fff}
@@ -80,10 +98,11 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:80}
 .overlay.show{display:block}
 @media(max-width:1100px){.toc{display:none}.main{margin-right:0}}
-@media(max-width:768px){.hdr-menu{display:flex;align-items:center;justify-content:center}.side{transform:translateX(-100%);width:280px;box-shadow:4px 0 24px var(--shadow)}.side.open{transform:translateX(0)}.main{margin-left:0}.chapter{padding:32px 20px 80px}.chapter h1{font-size:26px}.chapter h2{font-size:20px}.chapter p,.chapter li{font-size:16px}.logo-sub,.logo-divider{display:none}}
+@media(max-width:768px){.hdr-menu{display:flex;align-items:center;justify-content:center}.side{transform:translateX(-100%);width:280px;box-shadow:4px 0 24px var(--shadow)}.side.open{transform:translateX(0)}.main{margin-left:0}.chapter{padding:32px 20px 80px}.chapter h1{font-size:36px}.chapter h2{font-size:28px}.chapter h3{font-size:20px}.chapter h4{font-size:19px}.chapter p,.chapter li,.chapter ul,.chapter ol{font-size:18px}.chapter blockquote,.chapter blockquote p,.chapter blockquote ol{font-size:17px}.logo-sub,.logo-divider{display:none}}
 </style>
 </head>
 <body>
+<div class="progress-bar" id="progressBar"></div>
 <header class="hdr">
   <div class="hdr-left">
     <button class="hdr-menu" onclick="toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
@@ -96,14 +115,14 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <div class="overlay" onclick="toggleMenu()"></div>
 <nav class="side">
 <div class="nav-divider">가이드</div>
-<div class="nav-section open">
+<div class="nav-section">
   <button class="nav-section-toggle" onclick="toggleSection(this)"><span>1. SPEC 디자인 개요</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="nav-section-items">
-    <button class="nav-item" data-target="ov-0" onclick="go('ov-0',this)">SPEC 디자인 개요</button>
+    <button class="nav-item" data-target="ov-0" onclick="go('ov-0',this)">개요</button>
   </div>
 </div>
 <div class="nav-section">
-  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>디자인 기초</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>2. 디자인 기초</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="nav-section-items">
     <button class="nav-item" data-target="db-0" onclick="go('db-0',this)">왜 디자인을 알아야 하는가?</button>
     <button class="nav-item" data-target="db-1" onclick="go('db-1',this)">레이아웃의 4원칙 — C.R.A.P.</button>
@@ -114,51 +133,51 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
   </div>
 </div>
 <div class="nav-section">
-  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>2. 툴 소개</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>3. 툴 소개</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="nav-section-items">
-    <button class="nav-item" data-target="tl-0" onclick="go('tl-0',this)">다루게 될 툴 소개</button>
-    <button class="nav-item" data-target="tl-1" onclick="go('tl-1',this)">Genspark</button>
-    <button class="nav-item" data-target="tl-2" onclick="go('tl-2',this)">Manus</button>
-    <button class="nav-item" data-target="tl-3" onclick="go('tl-3',this)">Snapdeck</button>
-    <button class="nav-item" data-target="tl-4" onclick="go('tl-4',this)">나노바나나 (Hailuo AI)</button>
-    <button class="nav-item" data-target="tl-5" onclick="go('tl-5',this)">Claude Code</button>
-    <button class="nav-item" data-target="tl-6" onclick="go('tl-6',this)">Canva</button>
-    <button class="nav-item" data-target="tl-7" onclick="go('tl-7',this)">미리캔버스</button>
-    <button class="nav-item" data-target="tl-8" onclick="go('tl-8',this)">Figma</button>
-    <button class="nav-item" data-target="tl-9" onclick="go('tl-9',this)">Gamma</button>
-    <button class="nav-item" data-target="tl-10" onclick="go('tl-10',this)">Ideogram</button>
-    <button class="nav-item" data-target="tl-11" onclick="go('tl-11',this)">Pencil Dev</button>
-    <button class="nav-item" data-target="tl-12" onclick="go('tl-12',this)">Pinterest</button>
+    <button class="nav-item" data-target="tl-0" onclick="go('tl-0',this)">개요</button>
+    <button class="nav-item" data-target="tl-1" onclick="go('tl-1',this)"><img class="nav-logo" src="logo-genspark.png" alt="">Genspark</button>
+    <button class="nav-item" data-target="tl-2" onclick="go('tl-2',this)"><img class="nav-logo" src="logo-manus.png" alt="">Manus</button>
+    <button class="nav-item" data-target="tl-3" onclick="go('tl-3',this)"><img class="nav-logo" src="logo-snapdeck.png" alt="">Snapdeck</button>
+    <button class="nav-item" data-target="tl-4" onclick="go('tl-4',this)"><img class="nav-logo" src="logo-hailuo.png" alt="">나노바나나 (Hailuo AI)</button>
+    <button class="nav-item" data-target="tl-5" onclick="go('tl-5',this)"><img class="nav-logo" src="logo-claude.png" alt="">Claude Code</button>
+    <button class="nav-item" data-target="tl-6" onclick="go('tl-6',this)"><img class="nav-logo" src="logo-canva.png" alt="">Canva</button>
+    <button class="nav-item" data-target="tl-7" onclick="go('tl-7',this)"><img class="nav-logo" src="logo-miricanvas.png" alt="">미리캔버스</button>
+    <button class="nav-item" data-target="tl-8" onclick="go('tl-8',this)"><img class="nav-logo" src="logo-figma.png" alt="">Figma</button>
+    <button class="nav-item" data-target="tl-9" onclick="go('tl-9',this)"><img class="nav-logo" src="logo-gamma.png" alt="">Gamma</button>
+    <button class="nav-item" data-target="tl-10" onclick="go('tl-10',this)"><img class="nav-logo" src="logo-ideogram.png" alt="">Ideogram</button>
+    <button class="nav-item" data-target="tl-11" onclick="go('tl-11',this)"><img class="nav-logo" src="logo-pencil.png" alt="">Pencil Dev</button>
+    <button class="nav-item" data-target="tl-12" onclick="go('tl-12',this)"><img class="nav-logo" src="logo-pinterest.png" alt="">Pinterest</button>
   </div>
 </div>
 <div class="nav-section">
-  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>3. 레퍼런스 사이트 모음</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>4. 레퍼런스 사이트 모음</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="nav-section-items">
-    <button class="nav-item" data-target="rf-0" onclick="go('rf-0',this)">레퍼런스</button>
-    <button class="nav-item" data-target="rf-1" onclick="go('rf-1',this)">디자인 영감</button>
-    <button class="nav-item" data-target="rf-2" onclick="go('rf-2',this)">폰트 레퍼런스</button>
-    <button class="nav-item" data-target="rf-3" onclick="go('rf-3',this)">색상 레퍼런스</button>
-    <button class="nav-item" data-target="rf-4" onclick="go('rf-4',this)">로고 레퍼런스</button>
-    <button class="nav-item" data-target="rf-5" onclick="go('rf-5',this)">템플릿 모음</button>
+    <button class="nav-item" data-target="rf-0" onclick="go('rf-0',this)">개요</button>
+    <button class="nav-item dim" data-target="rf-1" onclick="go('rf-1',this)">디자인 영감 - 준비중</button>
+    <button class="nav-item dim" data-target="rf-2" onclick="go('rf-2',this)">폰트 레퍼런스 - 준비중</button>
+    <button class="nav-item dim" data-target="rf-3" onclick="go('rf-3',this)">색상 레퍼런스 - 준비중</button>
+    <button class="nav-item dim" data-target="rf-4" onclick="go('rf-4',this)">로고 레퍼런스 - 준비중</button>
+    <button class="nav-item dim" data-target="rf-5" onclick="go('rf-5',this)">템플릿 모음 - 준비중</button>
   </div>
 </div>
 <div class="nav-section">
-  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>4. 활용 가이드</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>5. 활용 가이드</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="nav-section-items">
-    <button class="nav-item" data-target="pr-0" onclick="go('pr-0',this)">활용</button>
-    <button class="nav-item" data-target="pr-1" onclick="go('pr-1',this)">PPT 제작</button>
-    <button class="nav-item" data-target="pr-2" onclick="go('pr-2',this)">카드뉴스 제작</button>
-    <button class="nav-item" data-target="pr-3" onclick="go('pr-3',this)">카드뉴스 자동화</button>
-    <button class="nav-item" data-target="pr-4" onclick="go('pr-4',this)">포스터 / 배너</button>
-    <button class="nav-item" data-target="pr-5" onclick="go('pr-5',this)">로고 디자인</button>
-    <button class="nav-item" data-target="pr-6" onclick="go('pr-6',this)">랜딩페이지 제작</button>
-    <button class="nav-item" data-target="pr-7" onclick="go('pr-7',this)">와이어프레임</button>
-    <button class="nav-item" data-target="pr-8" onclick="go('pr-8',this)">바이브 코딩</button>
+    <button class="nav-item" data-target="pr-0" onclick="go('pr-0',this)">개요</button>
+    <button class="nav-item dim" data-target="pr-1" onclick="go('pr-1',this)">PPT 제작 - 준비중</button>
+    <button class="nav-item dim" data-target="pr-2" onclick="go('pr-2',this)">카드뉴스 제작 - 준비중</button>
+    <button class="nav-item dim" data-target="pr-3" onclick="go('pr-3',this)">카드뉴스 자동화 - 준비중</button>
+    <button class="nav-item dim" data-target="pr-4" onclick="go('pr-4',this)">포스터 / 배너 - 준비중</button>
+    <button class="nav-item dim" data-target="pr-5" onclick="go('pr-5',this)">로고 디자인 - 준비중</button>
+    <button class="nav-item dim" data-target="pr-6" onclick="go('pr-6',this)">랜딩페이지 제작 - 준비중</button>
+    <button class="nav-item dim" data-target="pr-7" onclick="go('pr-7',this)">와이어프레임 - 준비중</button>
+    <button class="nav-item dim" data-target="pr-8" onclick="go('pr-8',this)">바이브 코딩 - 준비중</button>
   </div>
 </div>
 
 <div class="nav-divider">주차별 챌린지</div>
-<div class="nav-section open">
+<div class="nav-section">
   <button class="nav-section-toggle" onclick="toggleSection(this)"><span>챌린지</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="nav-section-items">
     <button class="nav-item" data-target="wk-1" onclick="go('wk-1',this)">1주차 — OT & 디자인 기초</button>
@@ -183,9 +202,20 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 </nav>
 <aside class="toc" id="toc"><div class="toc-title">On this page</div></aside>
 <main class="main">
-<article id="ov-0" class="chapter active"><h1>SPEC 디자인 개요</h1>
+<article id="ov-0" class="chapter active"><h1>개요</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<blockquote>
+<p><strong>SPEC 4기 디자인팀의 역할, 디자인 시스템, 방향성을 소개하는 문서입니다.</strong> 우리 팀이 무엇을 하고, 어떤 방식으로 일하게 되는지를 이해하는 것이 첫 번째 단계입니다.</p>
+<p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
+<ol>
+<li>팀의 임무와 제작 결과물</li>
+<li>에센스 디자인 시스템이란 무엇인가</li>
+<li>SPEC 공식 색상 팔레트</li>
+<li>팀 운영 방향성</li>
+</ol>
+</blockquote>
 <h2 id="ov-h2-0-0">팀 소개 &amp; 임무</h2>
 <p>SPEC 4기 디자인팀은 SPEC의 모든 시각적 파트를 담당합니다. PPT, 카드뉴스, 배너, 포스터 등 SPEC에서 필요로 하는 시각 콘텐츠를 기획하고 제작하는 것이 핵심 임무입니다.</p>
+<p><strong>피그마</strong>: <a target="_blank" rel="noopener" href="https://www.figma.com/design/uedamwblpQiRqbLEXb8HD6/spec-4%EA%B8%B0?node-id=0-1&t=XKCifv8ZH7hqlpil-1">SPEC 4기 디자인팀 피그마</a></p>
 <p>구체적으로 다음과 같은 결과물을 제작하게 됩니다.</p>
 <ol>
 <li><strong>PPT 발표자료</strong> — 동아리 소개, 피치덱, 내부 발표 등</li>
@@ -194,29 +224,77 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <li><strong>랜딩페이지</strong> — 동아리 소개 웹사이트</li>
 <li><strong>기타 시각물</strong> — 로고, 와이어프레임, UI 디자인</li>
 </ol>
-<h2 id="ov-h2-0-1">X(엑키스) 디자인 시스템</h2>
-<p>본 팀은 배달의민족 디자인팀에서 활용하고 있는 <strong>X(엑키스) 방법론</strong>을 도입합니다.</p>
-<p>X 방법론이란, 하나의 핵심 시각 요소를 선정하고 이를 모든 디자인에 일관되게 적용하는 방식입니다. 예를 들어 배달의민족의 경우 &#39;대리석 질감&#39;이라는 하나의 요소를 정하고, 포스터든 배너든 카드뉴스든 해당 질감을 기반으로 제작합니다. 이를 통해 별도의 디자인 가이드라인 없이도 자연스럽게 일관성 있는 결과물이 만들어집니다.</p>
-<p>SPEC 디자인팀 역시 우리만의 X 요소를 선정하여 모든 시각물에 적용할 예정입니다. 이를 통해 SPEC의 브랜드 정체성이 시각적으로 통일되는 효과를 기대할 수 있습니다.</p>
-<h2 id="ov-h2-0-2">방향성</h2>
+<h2 id="ov-h2-0-1">에센스 디자인 시스템</h2>
+<p>본 팀은 배달의민족 디자인팀에서 활용하고 있는 <strong>에센스 방법론</strong>을 도입합니다.</p>
+<p>에센스 방법론이란, 디자인의 군더더기를 전부 걷어내고 <em><strong>핵심 시각 요소 하나</strong></em>만 추출한 뒤, 이를 AI의 스타일 참조로 넣어 일관된 디자인 자산을 대량 생산하는 방식입니다.</p>
+<p>배달의민족의 사례를 보면 이해가 쉽습니다. 배달의민족은 원래 스컬피(조각용 점토)를 손으로 직접 깎아서 디자인 자산을 만들었습니다. 퀄리티는 높지만, 하나 만드는 데 시간이 막대하게 소요되는 작업이었습니다.</p>
+<p><img src="essence-sculpy.png" alt="스컬피로 깎아 만든 에센스 원형"><div class="img-caption">&lt; 스컬피로 깎아 만든 에센스 원형 &gt;</div></p>
+<p>이를 해결하기 위해 디자인팀은 스컬피로 깎은 듯한 느낌의 핵심 질감 하나를 &quot;에센스&quot;로 추출했습니다. 여기에 브랜드 컬러와 명도 대비를 입히면 아래와 같이 다양한 스타일 참조용 에센스가 만들어집니다.</p>
+<p><img src="essence-colors.png" alt="컬러를 입힌 에센스 변형"><div class="img-caption">&lt; 컬러를 입힌 에센스 변형 &gt;</div></p>
+<p>이 에센스를 Adobe Firefly 등 AI 이미지 생성 도구의 스타일 참조에 넣고, &quot;오토바이 그려줘&quot; 한 문장만 입력하면 배달의민족 스타일의 오토바이가 바로 나오는 시스템을 구축한 것입니다.</p>
+<p>이 방식의 핵심은 다음 세 가지입니다.</p>
+<ol>
+<li><strong>에센스 추출</strong> — 브랜드의 시각적 본질을 군더더기 없이 하나의 이미지로 압축합니다. 컬러, 질감, 명도 대비 등 핵심 요소만 남깁니다.</li>
+<li><strong>AI 스타일 참조</strong> — 추출한 에센스를 AI 도구의 스타일 레퍼런스로 넣습니다. 프롬프트는 &quot;바나나 그려줘&quot; 수준으로 짧아도 일관된 결과가 나옵니다.</li>
+<li><strong>대량 생산 가능</strong> — 인턴이든 신입이든 이 에센스를 넣고 AI를 돌리면 2~3년차와 비슷한 수준의 결과물을 만들어낼 수 있습니다.</li>
+</ol>
+<p>SPEC 디자인팀 역시 우리만의 에센스를 선정하여 모든 시각물에 적용할 예정입니다. 이를 통해 누가 만들어도 &quot;SPEC 스타일&quot;이라는 일관된 정체성을 유지할 수 있습니다.</p>
+<p>아래는 미리 만들어둔 SPEC 에센스 모음입니다. 원본 파일은 <a target="_blank" rel="noopener" href="https://www.figma.com/design/uedamwblpQiRqbLEXb8HD6/spec-4%EA%B8%B0?node-id=0-1&t=XKCifv8ZH7hqlpil-1">피그마</a>에 들어있으며, 이 에센스들을 AI 도구의 스타일 참조에 넣어 테스트해볼 수 있습니다.</p>
+<p><img src="essence-test.jpeg" alt="SPEC 에센스 모음 1"><div class="img-caption">&lt; SPEC 에센스 모음 1 &gt;</div></p>
+<p><img src="essence-test2.jpeg" alt="SPEC 에센스 모음 2"><div class="img-caption">&lt; SPEC 에센스 모음 2 &gt;</div></p>
+<h2 id="ov-h2-0-2">SPEC 기반 색상</h2>
+<p>모든 디자인 결과물에 사용되는 SPEC의 공식 색상 팔레트입니다.</p>
+<p><img src="colors.png" alt="SPEC 색상 팔레트"><div class="img-caption">&lt; SPEC 색상 팔레트 &gt;</div></p>
+<table>
+<thead>
+<tr>
+<th>용도</th>
+<th>색상명</th>
+<th>코드</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Primary</strong></td>
+<td>오렌지</td>
+<td><code>#FF6C0F</code></td>
+</tr>
+<tr>
+<td><strong>Primary Variant</strong></td>
+<td>옐로우 오렌지</td>
+<td><code>#FF9900</code></td>
+</tr>
+<tr>
+<td><strong>Secondary</strong></td>
+<td>퍼플</td>
+<td><code>#4C4780</code></td>
+</tr>
+<tr>
+<td><strong>Black</strong></td>
+<td>블랙</td>
+<td><code>#202020</code></td>
+</tr>
+<tr>
+<td><strong>White</strong></td>
+<td>화이트</td>
+<td><code>#FCFCF8</code></td>
+</tr>
+</tbody></table>
+<p>Primary(오렌지)가 SPEC의 메인 컬러이며, 강조가 필요한 경우 Primary Variant를 사용합니다. Secondary(퍼플)는 보조 색상으로 활용됩니다.</p>
+<h2 id="ov-h2-0-3">방향성</h2>
 <p>본 팀은 다음 세 가지 방향으로 운영됩니다.</p>
 <ol>
 <li><p><strong>AI 도구 적극 활용</strong> — 디자인 비전공자도 AI 도구를 활용하여 실무급 결과물을 제작할 수 있습니다. 다양한 AI 디자인 도구를 실험하고, 효과적인 것은 팀의 표준 워크플로우로 채택합니다.</p>
 </li>
 <li><p><strong>원칙 기반 디자인</strong> — 감각에 의존하지 않고 검증된 디자인 원칙(CRAP, 시각적 위계, 색상 이론 등)을 기반으로 작업합니다. 원칙을 알면 AI 도구에 더 정확한 지시를 내릴 수 있습니다.</p>
 </li>
-<li><p><strong>실전 중심</strong> — 이론 학습에 그치지 않고 매주 실제 SPEC 홍보물을 제작합니다. 만들고, 피드백 받고, 개선하는 과정을 반복합니다.</p>
+<li><p><strong>실전 중심</strong> — 실제로 만들어야 하는 상황이 오면, 모든 팀원이 각자 포스터를 1개 이상 제작해 옵니다. 이후 함께 피드백을 주고받으며 개선하는 과정을 반복합니다.</p>
 </li>
 </ol>
 </article>
-<article id="db-0" class="chapter"><h1>비전공자를 위한 디자인 기초</h1>
+<article id="db-0" class="chapter"><h1>Chapter 0. 왜 디자인을 알아야 하는가?</h1><div class="chapter-date">2026. 03. 18&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
-<p><strong>SPEC 4기 디자인팀 전용 교육자료</strong>
-본 자료는 디자인을 전공하지 않은 분이 실무에서 쓸 수 있는 수준까지 빠르게 올라가기 위해 제작되었습니다.
-이론보다 감각, 감각보다 원칙. 원칙을 알면 AI 도구도 제대로 활용하실 수 있습니다.</p>
+<p><strong>SPEC 4기 디자인팀 전용 교육자료입니다.</strong> 본 자료는 디자인을 전공하지 않은 분이 실무에서 쓸 수 있는 수준까지 빠르게 올라가기 위해 제작되었습니다. 이론보다 감각, 감각보다 원칙. 원칙을 알면 AI 도구도 제대로 활용하실 수 있습니다.</p>
 </blockquote>
-<hr>
-<h1>Chapter 0. 왜 디자인을 알아야 하는가?</h1>
 <blockquote>
 <p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
 <ol>
@@ -281,7 +359,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <hr>
 <p>&nbsp;</p>
 </article>
-<article id="db-1" class="chapter"><h1>Chapter 1. 레이아웃의 4원칙 — C.R.A.P.</h1>
+<article id="db-1" class="chapter"><h1>Chapter 1. 레이아웃의 4원칙 — C.R.A.P.</h1><div class="chapter-date">2026. 03. 18&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
 <ol>
@@ -484,46 +562,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 &quot;그룹과 그룹 사이에 충분한 여백이 있는가?&quot;</p>
 </blockquote>
 <hr>
-<h2 id="db-h2-1-4">C.R.A.P. 실전 체크리스트</h2>
-<p>디자인을 완성하고 나서 이 체크리스트로 점검해보시기 바랍니다.</p>
-<h3>✅ 원칙 1. Contrast (대비)</h3>
-<ul>
-<li><input disabled="" type="checkbox"> 가장 중요한 정보가 한눈에 보이는가?</li>
-<li><input disabled="" type="checkbox"> 제목과 본문의 크기 차이가 충분한가? (최소 1.5배 이상)</li>
-<li><input disabled="" type="checkbox"> 비슷해 보이는 요소들이 의도치 않게 비슷한 건 아닌가?</li>
-<li><input disabled="" type="checkbox"> 배경과 텍스트의 색상 대비가 충분한가? (읽기 어렵지 않은가?)</li>
-</ul>
-<h3>✅ 원칙 2. Repetition (반복)</h3>
-<ul>
-<li><input disabled="" type="checkbox"> 폰트가 2~3가지 이내로 통일되어 있는가?</li>
-<li><input disabled="" type="checkbox"> 강조 색상이 일관되게 사용되고 있는가?</li>
-<li><input disabled="" type="checkbox"> 시리즈물이라면 반복되는 시각 요소가 있는가?</li>
-<li><input disabled="" type="checkbox"> 아이콘이나 그래픽 스타일이 통일되어 있는가?</li>
-</ul>
-<h3>✅ 원칙 3. Alignment (정렬)</h3>
-<ul>
-<li><input disabled="" type="checkbox"> 임의로 배치된 요소가 없는가?</li>
-<li><input disabled="" type="checkbox"> 보이지 않는 정렬선이 최소화되어 있는가?</li>
-<li><input disabled="" type="checkbox"> 긴 본문 텍스트가 좌측 정렬되어 있는가?</li>
-<li><input disabled="" type="checkbox"> 요소들이 서로 시각적으로 연결되어 있는가?</li>
-</ul>
-<h3>✅ 원칙 4. Proximity (근접)</h3>
-<ul>
-<li><input disabled="" type="checkbox"> 관련 있는 정보들이 가까이 묶여 있는가?</li>
-<li><input disabled="" type="checkbox"> 그룹과 그룹 사이에 충분한 여백이 있는가?</li>
-<li><input disabled="" type="checkbox"> 이미지와 그 설명이 가까이 있는가?</li>
-<li><input disabled="" type="checkbox"> 정보를 파악하는 데 전체를 다 읽어야 하는가? (그렇다면 그룹핑 필요)</li>
-</ul>
-<hr>
-<blockquote>
-<p><strong>한 줄 요약</strong>
-대비는 과감하게, 반복은 일관되게, 정렬은 선에 맞게, 근접은 그룹으로. 이 네 가지만 지켜도 디자인이 달라집니다.</p>
-</blockquote>
-<p>&nbsp;</p>
-<hr>
-<p>&nbsp;</p>
 </article>
-<article id="db-2" class="chapter"><h1>Chapter 2. 시각적 위계와 구도</h1>
+<article id="db-2" class="chapter"><h1>Chapter 2. 시각적 위계와 구도</h1><div class="chapter-date">2026. 03. 18&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>이 챕터에서 배우실 내용은 다음과 같습니다.</p>
 <ol>
@@ -731,41 +771,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 </tr>
 </tbody></table>
 <hr>
-<h2 id="db-h2-2-6">Chapter 2 체크리스트</h2>
-<p>디자인을 완성하고 나서 이 질문들을 점검해보시기 바랍니다.</p>
-<h3>시각적 위계</h3>
-<ul>
-<li><input disabled="" type="checkbox"> 가장 중요한 정보가 가장 먼저 보이는가?</li>
-<li><input disabled="" type="checkbox"> 1순위 → 2순위 → 3순위 순서가 명확한가?</li>
-<li><input disabled="" type="checkbox"> 크기, 굵기, 색상으로 위계가 만들어져 있는가?</li>
-</ul>
-<h3>시선 흐름</h3>
-<ul>
-<li><input disabled="" type="checkbox"> 포스터라면 Z패턴을 고려했는가?</li>
-<li><input disabled="" type="checkbox"> 중요한 정보가 왼쪽 또는 상단에 있는가?</li>
-<li><input disabled="" type="checkbox"> 눈이 자연스럽게 흐르는가, 아니면 헤매는가?</li>
-</ul>
-<h3>여백</h3>
-<ul>
-<li><input disabled="" type="checkbox"> 빈 공간을 억지로 채우려 하지 않았는가?</li>
-<li><input disabled="" type="checkbox"> 텍스트 주변에 충분한 여백이 있는가?</li>
-<li><input disabled="" type="checkbox"> 가장자리에서 충분히 안쪽에서 시작하는가?</li>
-</ul>
-<h3>구도</h3>
-<ul>
-<li><input disabled="" type="checkbox"> 이 디자인의 목적에 맞는 구도를 선택했는가?</li>
-<li><input disabled="" type="checkbox"> 요소들이 그리드에 맞춰 정렬되어 있는가?</li>
-<li><input disabled="" type="checkbox"> 전체적으로 균형이 잡혀 있는가?</li>
-</ul>
-<hr>
-<blockquote>
-<p><strong>한 줄 요약</strong>
-눈이 가는 순서를 설계하시기 바랍니다. 여백은 낭비가 아니라 디자인입니다. 구도는 목적에 맞게 선택하면 됩니다.</p>
-</blockquote>
-<p>&nbsp;</p>
-<hr>
-<p>&nbsp;</p>
-<h2 id="db-h2-2-7">Part 1을 마치며</h2>
+<h2 id="db-h2-2-6">Part 1을 마치며</h2>
 <p>Chapter 0에서 2까지 읽으셨다면 이제 디자인을 보는 눈이 조금 달라지셨을 것입니다.</p>
 <p>카페 메뉴판을 보면서 &quot;정렬이 엉망이네&quot;가 보이고, 잘 만든 포스터를 보면서 &quot;여기서 대비를 이렇게 썼구나&quot;가 읽히기 시작하셨다면 성공입니다. 이름을 붙이면 보이고, 보이면 만들 수 있습니다.</p>
 <p>본 자료에서 다룬 원칙을 정리하면 다음과 같습니다.</p>
@@ -794,7 +800,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <hr>
 <p><em>SPEC 4기 디자인팀 교육자료 | Part 1 완</em></p>
 </article>
-<article id="db-3" class="chapter"><h1>디자인 기초 Part 2 — 색, 글자, 이미지</h1>
+<article id="db-3" class="chapter"><h1>디자인 기초 Part 2 — 색, 글자, 이미지</h1><div class="chapter-date">2026. 03. 18&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>SPEC 4기 디자인팀 교육자료 | 비전공자를 위한 실전 디자인 가이드</p>
 </blockquote>
@@ -1003,18 +1009,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <p><strong>3. Photo to Palette</strong></p>
 <p>레퍼런스 이미지나 마음에 드는 사진에서 색을 추출하는 기능입니다. Adobe Color와 Coolors 둘 다 지원합니다. &quot;이 사진 분위기로 만들고 싶다&quot;고 느끼실 때 사진을 업로드하시면 팔레트가 생성됩니다.</p>
 <hr>
-<h2 id="db-h2-3-7">Chapter 3 오늘의 체크리스트</h2>
-<ul>
-<li><input disabled="" type="checkbox"> 컬러 휠에서 보색, 유사색, 단색 위치를 손으로 그려볼 수 있다</li>
-<li><input disabled="" type="checkbox"> 내가 만들 포스터에 따뜻한 색이 맞는지 차가운 색이 맞는지 판단할 수 있다</li>
-<li><input disabled="" type="checkbox"> 채도를 낮추면 고급스러워 보인다는 걸 실제로 테스트해봤다</li>
-<li><input disabled="" type="checkbox"> RGB와 CMYK 차이를 알고, 인쇄 전 변환이 필요하다는 걸 안다</li>
-<li><input disabled="" type="checkbox"> Coolors에서 스페이스바 눌러서 팔레트 3개 이상 만들어봤다</li>
-</ul>
-<hr>
-<hr>
 </article>
-<article id="db-4" class="chapter"><h1>Chapter 4. 타이포그래피 — 글자의 힘</h1>
+<article id="db-4" class="chapter"><h1>Chapter 4. 타이포그래피 — 글자의 힘</h1><div class="chapter-date">2026. 03. 18&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>&quot;폰트를 20개 설치한 여러분, 그래서 더 못 만드는 것입니다.&quot;</p>
 </blockquote>
@@ -1212,18 +1208,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <p><strong>3. 산돌구름 폰트 파인더 (sandollcloud.com)</strong></p>
 <p>이미지에서 한글 폰트를 역추적해주는 기능이 있습니다. &quot;이 포스터에 쓰인 폰트가 무엇인지&quot; 궁금하실 때 이미지를 업로드하시면 비슷한 폰트를 찾아줍니다.</p>
 <hr>
-<h2 id="db-h2-4-6">Chapter 4 오늘의 체크리스트</h2>
-<ul>
-<li><input disabled="" type="checkbox"> 세리프, 산세리프, 스크립트, 디스플레이 폰트를 각각 하나씩 찾아볼 수 있다</li>
-<li><input disabled="" type="checkbox"> 행간 = 글자 크기 × 1.5 공식을 실제 디자인에 적용해봤다</li>
-<li><input disabled="" type="checkbox"> 눈누에서 폰트 3개 이상 다운로드했다</li>
-<li><input disabled="" type="checkbox"> 리크루팅 포스터용 폰트 조합을 직접 테스트해봤다</li>
-<li><input disabled="" type="checkbox"> 폰트 2개 조합으로 제목과 본문을 구분한 디자인을 만들어봤다</li>
-</ul>
-<hr>
-<hr>
 </article>
-<article id="db-5" class="chapter"><h1>Chapter 5. 이미지 다루기</h1>
+<article id="db-5" class="chapter"><h1>Chapter 5. 이미지 다루기</h1><div class="chapter-date">2026. 03. 18&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>&quot;예쁜 사진 골라서 넣기, 그게 디자인이라고 생각하셨다면 지금부터 바뀌게 됩니다.&quot;</p>
 </blockquote>
@@ -1379,17 +1365,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 </tbody></table>
 <p>무료라도 라이선스를 확인하셔야 합니다. &quot;상업적 이용 가능&quot;, &quot;저작자 표시 불필요&quot;인지 반드시 체크해 주시기 바랍니다.</p>
 <hr>
-<h2 id="db-h2-5-7">Chapter 5 오늘의 체크리스트</h2>
-<ul>
-<li><input disabled="" type="checkbox"> 직시와 함축의 차이를 설명할 수 있다</li>
-<li><input disabled="" type="checkbox"> 삼분할 법칙을 적용해서 이미지를 자를 수 있다</li>
-<li><input disabled="" type="checkbox"> PhotoRoom이나 Remove.bg로 누끼를 따봤다</li>
-<li><input disabled="" type="checkbox"> 레이어를 나눠서 배경, 피사체, 텍스트를 각각 다른 층에 배치해봤다</li>
-<li><input disabled="" type="checkbox"> JPG, PNG, SVG의 차이를 알고 상황에 맞게 선택할 수 있다</li>
-<li><input disabled="" type="checkbox"> iLoveIMG로 이미지 용량을 줄여봤다</li>
-</ul>
-<hr>
-<h2 id="db-h2-5-8">전체 정리 — Part 2를 마치며</h2>
+<h2 id="db-h2-5-7">전체 정리 — Part 2를 마치며</h2>
 <p>3개 챕터를 통해 색, 글자, 이미지라는 디자인의 3가지 핵심 요소를 다루었습니다.</p>
 <p><strong>기억할 것 3가지:</strong></p>
 <ol>
@@ -1404,191 +1380,235 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <hr>
 <p><em>SPEC 4기 디자인팀 교육자료 | 2026</em></p>
 </article>
-<article id="tl-0" class="chapter"><h1>다루게 될 툴 소개</h1>
+<article id="tl-0" class="chapter"><h1>개요</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
-<p>본 섹션에서는 SPEC 디자인팀이 활용하게 될 AI 도구 및 디자인 도구를 소개합니다. 각 도구의 핵심 기능과 세팅 방법을 안내합니다.</p>
+<p><strong>SPEC 디자인팀이 활용하게 될 AI 도구 및 디자인 도구를 소개합니다.</strong> 각 도구가 무엇인지, 무료로 쓸 수 있는지, 어떤 상황에서 쓰면 좋은지를 간략히 안내합니다.</p>
+<p>소개하는 도구 목록은 다음과 같습니다.</p>
+<ol>
+<li>Genspark — 올인원 AI 플랫폼</li>
+<li>Manus — 자율형 AI 에이전트</li>
+<li>Snapdeck — AI 슬라이드 제작</li>
+<li>나노바나나 (Hailuo AI) — AI 이미지/영상 생성</li>
+<li>Claude Code — AI 코딩 에이전트</li>
+<li>Canva — 글로벌 디자인 플랫폼</li>
+<li>미리캔버스 — 한국형 디자인 플랫폼</li>
+<li>Figma — UI 디자인 도구</li>
+<li>Gamma — AI 발표자료 생성</li>
+<li>Ideogram — AI 이미지 생성 (한글 텍스트)</li>
+<li>Pencil Dev — AI 디자인→코드</li>
+<li>Pinterest — 레퍼런스 수집</li>
+</ol>
 </blockquote>
 <hr>
 </article>
-<article id="tl-1" class="chapter"><h1>Genspark</h1>
+<article id="tl-1" class="chapter"><h1><img class="title-logo" src="logo-genspark.png" alt="">Genspark</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://www.genspark.ai">https://www.genspark.ai</a></p>
 <blockquote>
 <p>리서치부터 슬라이드, 이미지, 영상, 웹사이트까지 한 곳에서 만들 수 있는 올인원 AI 플랫폼입니다.</p>
 </blockquote>
+<p><img src="tool-genspark.png" alt="Genspark 메인 페이지"><div class="img-caption">&lt; Genspark 메인 페이지 &gt;</div></p>
 <p>Genspark는 하나의 플랫폼 안에서 AI가 자료 조사, 발표자료 제작, 이미지 생성, 영상 제작, 웹사이트 생성을 모두 처리해 주는 도구입니다. 따로따로 여러 도구를 쓸 필요 없이 Genspark 하나로 대부분의 콘텐츠 제작 작업을 해결할 수 있습니다. 매일 무료 크레딧 100개가 지급되어 기본적인 사용은 무료로 가능합니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://www.genspark.ai">https://www.genspark.ai</a></p>
 <hr>
 </article>
-<article id="tl-2" class="chapter"><h1>Manus</h1>
+<article id="tl-2" class="chapter"><h1><img class="title-logo" src="logo-manus.png" alt="">Manus</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://manus.im">https://manus.im</a></p>
 <blockquote>
 <p>복잡한 작업을 지시하면 AI가 알아서 처음부터 끝까지 완성해 주는 자율형 AI 에이전트입니다.</p>
 </blockquote>
+<p><img src="tool-manus.png" alt="Manus 메인 페이지"><div class="img-caption">&lt; Manus 메인 페이지 &gt;</div></p>
 <p>Manus는 단순히 질문에 답하는 AI가 아니라, 주어진 목표를 스스로 계획하고 실행하는 AI입니다. &quot;이 주제로 보고서 만들어줘&quot;라고 지시하면 직접 인터넷을 검색하고, 내용을 정리하고, 문서까지 완성해서 결과물을 건네줍니다. 코드 작성이나 데이터 분석처럼 복잡한 작업도 처리할 수 있어, 여러 단계가 필요한 작업을 한 번에 맡길 수 있습니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://manus.im">https://manus.im</a></p>
 <hr>
 </article>
-<article id="tl-3" class="chapter"><h1>Snapdeck</h1>
+<article id="tl-3" class="chapter"><h1><img class="title-logo" src="logo-snapdeck.png" alt="">Snapdeck</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://snapdeck.app">https://snapdeck.app</a></p>
 <blockquote>
 <p>텍스트나 문서를 붙여넣으면 AI가 발표자료로 바꿔주는 슬라이드 제작 도구입니다.</p>
 </blockquote>
+<p><img src="tool-snapdeck.png" alt="Snapdeck 메인 페이지"><div class="img-caption">&lt; Snapdeck 메인 페이지 &gt;</div></p>
 <p>Snapdeck은 내용만 입력하면 AI가 자동으로 슬라이드 구성을 잡고 디자인까지 완성해 주는 도구입니다. 직접 레이아웃을 잡거나 디자인을 고민할 필요 없이, 전달하고 싶은 내용에만 집중하면 됩니다. 발표자료를 빠르게 만들어야 할 때 특히 유용합니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://snapdeck.app">https://snapdeck.app</a></p>
 <hr>
 </article>
-<article id="tl-4" class="chapter"><h1>나노바나나 (Hailuo AI)</h1>
+<article id="tl-4" class="chapter"><h1><img class="title-logo" src="logo-hailuo.png" alt="">나노바나나 (Hailuo AI)</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://hailuoai.video">https://hailuoai.video</a></p>
 <blockquote>
 <p>텍스트 설명만으로 사실적인 인물, 제품, 배경 이미지와 영상을 만들어주는 AI 생성 도구입니다.</p>
 </blockquote>
+<p><img src="tool-hailuo.png" alt="나노바나나 메인 페이지"><div class="img-caption">&lt; 나노바나나 메인 페이지 &gt;</div></p>
 <p>나노바나나는 Hailuo AI를 기반으로 한 AI 이미지·영상 생성 서비스입니다. 원하는 장면을 글로 설명하면 실제 사진처럼 보이는 이미지나 짧은 영상을 만들어 줍니다. 특히 인물의 표정과 감정 표현이 업계 최고 수준으로 평가받고 있어, 포스터나 홍보물에 쓸 인물 이미지를 만들 때 매우 유용합니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://hailuoai.video">https://hailuoai.video</a></p>
 <hr>
 </article>
-<article id="tl-5" class="chapter"><h1>Claude Code</h1>
+<article id="tl-5" class="chapter"><h1><img class="title-logo" src="logo-claude.png" alt="">Claude Code</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://claude.ai/code">https://claude.ai/code</a></p>
 <blockquote>
 <p>자연어로 지시하면 코드 작성, 파일 수정, 웹사이트 제작까지 처리해 주는 Anthropic의 AI 코딩 에이전트입니다.</p>
 </blockquote>
+<p><img src="tool-claude-code.png" alt="Claude Code 메인 페이지"><div class="img-caption">&lt; Claude Code 메인 페이지 &gt;</div></p>
 <p>Claude Code는 터미널(명령 프롬프트)에서 실행하는 AI 도구로, 코딩 지식 없이도 &quot;이런 웹사이트 만들어줘&quot;, &quot;이 파일 수정해줘&quot;처럼 말로 지시하면 AI가 직접 작업을 수행합니다. 단순한 코드 생성을 넘어 파일을 읽고, 수정하고, 실행까지 하는 에이전트 방식으로 동작합니다. 지금 보고 있는 이 사이트 자체도 Claude Code로 제작되었습니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://claude.ai/code">https://claude.ai/code</a></p>
 <hr>
 </article>
-<article id="tl-6" class="chapter"><h1>Canva</h1>
+<article id="tl-6" class="chapter"><h1><img class="title-logo" src="logo-canva.png" alt="">Canva</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://www.canva.com">https://www.canva.com</a></p>
 <blockquote>
 <p>전 세계 1억 9천만 명이 쓰는 글로벌 1위 디자인 플랫폼입니다.</p>
 </blockquote>
+<p><img src="tool-canva.png" alt="Canva 메인 페이지"><div class="img-caption">&lt; Canva 메인 페이지 &gt;</div></p>
 <p>Canva는 디자인 전문 지식 없이도 포스터, PPT, 카드뉴스, SNS 콘텐츠 등을 쉽게 만들 수 있는 도구입니다. 수천 개의 템플릿 중 마음에 드는 것을 골라 텍스트와 이미지만 바꾸면 완성도 높은 결과물이 나옵니다. Magic Design 기능을 사용하면 프롬프트 한 줄만으로 AI가 디자인을 자동 생성해 주며, 기본 기능은 무료로 사용할 수 있습니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://www.canva.com">https://www.canva.com</a></p>
 <hr>
 </article>
-<article id="tl-7" class="chapter"><h1>미리캔버스</h1>
+<article id="tl-7" class="chapter"><h1><img class="title-logo" src="logo-miricanvas.png" alt="">미리캔버스</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://www.miricanvas.com">https://www.miricanvas.com</a></p>
 <blockquote>
 <p>한국 트렌드와 한국어에 최적화된 국내 1위 디자인 플랫폼입니다.</p>
 </blockquote>
+<p><img src="tool-miricanvas.png" alt="미리캔버스 메인 페이지"><div class="img-caption">&lt; 미리캔버스 메인 페이지 &gt;</div></p>
 <p>미리캔버스는 Canva와 비슷한 템플릿 기반 디자인 도구이지만, 한국 감성과 트렌드에 맞는 템플릿이 풍부하고 한국어 폰트와 레이아웃이 잘 갖춰져 있습니다. AI PPT 자동 생성, AI 이미지 생성, 배경 제거 기능을 모두 무료로 사용할 수 있습니다. 한국어 콘텐츠를 만들 때는 Canva보다 미리캔버스가 더 편리한 경우가 많습니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://www.miricanvas.com">https://www.miricanvas.com</a></p>
 <hr>
 </article>
-<article id="tl-8" class="chapter"><h1>Figma</h1>
+<article id="tl-8" class="chapter"><h1><img class="title-logo" src="logo-figma.png" alt="">Figma</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://www.figma.com">https://www.figma.com</a></p>
 <blockquote>
 <p>UI/UX 디자인 업계에서 가장 널리 쓰이는 표준 디자인 도구입니다.</p>
 </blockquote>
+<p><img src="tool-figma.png" alt="Figma 메인 페이지"><div class="img-caption">&lt; Figma 메인 페이지 &gt;</div></p>
 <p>Figma는 앱이나 웹사이트의 화면을 설계하고 디자인하는 데 특화된 도구로, 전 세계 디자이너들이 실무에서 가장 많이 사용합니다. 여러 명이 동시에 같은 파일을 편집할 수 있는 실시간 협업 기능이 강점이며, 디자인한 화면이 실제로 어떻게 작동하는지 미리 보여주는 프로토타이핑 기능도 있습니다. 처음 배우는 데 시간이 조금 걸리지만, 무료 플랜으로 시작할 수 있고 익히면 가장 강력한 디자인 도구입니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://www.figma.com">https://www.figma.com</a></p>
 <hr>
 </article>
-<article id="tl-9" class="chapter"><h1>Gamma</h1>
+<article id="tl-9" class="chapter"><h1><img class="title-logo" src="logo-gamma.png" alt="">Gamma</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://gamma.app">https://gamma.app</a></p>
 <blockquote>
 <p>프롬프트 한 줄로 60초 만에 완성된 발표자료를 만들어주는 AI 도구입니다.</p>
 </blockquote>
+<p><img src="tool-gamma.png" alt="Gamma 메인 페이지"><div class="img-caption">&lt; Gamma 메인 페이지 &gt;</div></p>
 <p>Gamma는 주제나 내용을 입력하면 AI가 슬라이드 구성, 디자인, 텍스트를 모두 자동으로 완성해 주는 발표자료 생성 도구입니다. 완성된 자료는 PPT나 Google Slides 형식으로 내보낼 수 있어 기존 작업 방식과 연결하기도 쉽습니다. 한국어를 지원하며 무료로 400크레딧이 제공됩니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://gamma.app">https://gamma.app</a></p>
 <hr>
 </article>
-<article id="tl-10" class="chapter"><h1>Ideogram</h1>
+<article id="tl-10" class="chapter"><h1><img class="title-logo" src="logo-ideogram.png" alt="">Ideogram</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://ideogram.ai">https://ideogram.ai</a></p>
 <blockquote>
 <p>텍스트가 포함된 이미지를 정확하게 만들어주는 AI 이미지 생성 도구입니다.</p>
 </blockquote>
+<p><img src="tool-ideogram.png" alt="Ideogram 메인 페이지"><div class="img-caption">&lt; Ideogram 메인 페이지 &gt;</div></p>
 <p>Ideogram은 원하는 이미지를 글로 설명하면 AI가 이미지를 생성해 주는 도구입니다. 다른 AI 이미지 도구들이 이미지 안에 글자를 넣으면 글자가 뭉개지거나 틀리게 나오는 문제가 있는 반면, Ideogram은 텍스트를 정확하게 표현하는 것이 강점입니다. 한글 텍스트 정확도도 업계 최고 수준이라 로고, 포스터, 배너 초안을 만들 때 특히 유용하며, 무료로 사용할 수 있습니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://ideogram.ai">https://ideogram.ai</a></p>
 <hr>
 </article>
-<article id="tl-11" class="chapter"><h1>Pencil Dev</h1>
+<article id="tl-11" class="chapter"><h1><img class="title-logo" src="logo-pencil.png" alt="">Pencil Dev</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://pencil.dev">https://pencil.dev</a></p>
 <blockquote>
 <p>캔버스에서 디자인하면 실제 작동하는 코드로 자동 변환해 주는 AI 네이티브 디자인 도구입니다.</p>
 </blockquote>
+<p><img src="tool-pencil.png" alt="Pencil Dev 메인 페이지"><div class="img-caption">&lt; Pencil Dev 메인 페이지 &gt;</div></p>
 <p>Pencil Dev는 디자인과 개발을 동시에 처리하는 도구로, 화면에서 직접 디자인하면 그 결과물이 실제 웹사이트에서 작동하는 코드(React, HTML)로 자동 변환됩니다. 디자이너가 따로 개발자에게 작업을 넘기지 않아도 되고, 코딩을 몰라도 실제로 작동하는 결과물을 만들 수 있습니다. Claude Code와 연동하면 AI가 디자인 작업까지 직접 수행할 수 있습니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://pencil.dev">https://pencil.dev</a></p>
 <hr>
 </article>
-<article id="tl-12" class="chapter"><h1>Pinterest</h1>
+<article id="tl-12" class="chapter"><h1><img class="title-logo" src="logo-pinterest.png" alt="">Pinterest</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<p><strong>공식 사이트</strong>: <a target="_blank" rel="noopener" href="https://www.pinterest.com">https://www.pinterest.com</a></p>
 <blockquote>
 <p>이미지 기반으로 디자인 레퍼런스를 검색하고 체계적으로 모아두는 플랫폼입니다.</p>
 </blockquote>
+<p><img src="tool-pinterest.png" alt="Pinterest 메인 페이지"><div class="img-caption">&lt; Pinterest 메인 페이지 &gt;</div></p>
 <p>Pinterest는 전 세계 디자이너들이 영감을 얻기 위해 가장 많이 사용하는 이미지 수집 플랫폼입니다. 원하는 스타일이나 주제를 검색하면 관련 이미지가 쏟아지고, 마음에 드는 것을 보드에 저장해 레퍼런스를 정리할 수 있습니다. 디자인 작업을 시작하기 전 방향을 잡는 데 매우 유용하며, 무료로 사용할 수 있습니다.</p>
-<p><strong>공식 사이트</strong>: <a href="https://www.pinterest.com">https://www.pinterest.com</a></p>
 </article>
-<article id="rf-0" class="chapter"><h1>레퍼런스</h1>
+<article id="rf-0" class="chapter"><h1>개요</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
-<p>디자인 작업 시 참고할 수 있는 레퍼런스 사이트와 자료를 모아둔 섹션입니다.</p>
+<p><strong>디자인 작업 시 참고할 수 있는 레퍼런스 사이트와 자료를 모아둔 섹션입니다.</strong> 영감이 필요하거나, 폰트/색상/로고 레퍼런스를 찾을 때 활용합니다.</p>
+<p>카테고리별 레퍼런스 목록은 다음과 같습니다.</p>
+<ol>
+<li>디자인 영감 사이트</li>
+<li>폰트 레퍼런스</li>
+<li>색상 레퍼런스</li>
+<li>로고 레퍼런스</li>
+<li>템플릿 모음</li>
+</ol>
 </blockquote>
-<hr>
 </article>
-<article id="rf-1" class="chapter"><h1>디자인 영감</h1>
-<blockquote>
-<p>준비 중입니다.</p>
-</blockquote>
-<hr>
-</article>
-<article id="rf-2" class="chapter"><h1>폰트 레퍼런스</h1>
-<blockquote>
-<p>준비 중입니다.</p>
-</blockquote>
-<hr>
-</article>
-<article id="rf-3" class="chapter"><h1>색상 레퍼런스</h1>
+<article id="rf-1" class="chapter"><h1>디자인 영감</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="rf-4" class="chapter"><h1>로고 레퍼런스</h1>
+<article id="rf-2" class="chapter"><h1>폰트 레퍼런스</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="rf-5" class="chapter"><h1>템플릿 모음</h1>
-<blockquote>
-<p>준비 중입니다.</p>
-</blockquote>
-</article>
-<article id="pr-0" class="chapter"><h1>활용</h1>
-<blockquote>
-<p>위에서 소개한 도구들을 활용하여 실제 결과물을 제작하는 방법을 안내합니다. 각 카테고리별로 작업 프로세스와 팁을 정리하였습니다.</p>
-</blockquote>
-<hr>
-</article>
-<article id="pr-1" class="chapter"><h1>PPT 제작</h1>
+<article id="rf-3" class="chapter"><h1>색상 레퍼런스</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="pr-2" class="chapter"><h1>카드뉴스 제작</h1>
+<article id="rf-4" class="chapter"><h1>로고 레퍼런스</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="pr-3" class="chapter"><h1>카드뉴스 자동화</h1>
+<article id="rf-5" class="chapter"><h1>템플릿 모음</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+</article>
+<article id="pr-0" class="chapter"><h1>개요</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<blockquote>
+<p><strong>앞서 소개한 도구들을 활용하여 실제 결과물을 제작하는 방법을 안내합니다.</strong> 만들고 싶은 결과물이 있을 때, 해당 카테고리에 들어가면 어떤 도구를 어떻게 쓰면 되는지 확인할 수 있습니다.</p>
+<p>활용 가이드 카테고리는 다음과 같습니다.</p>
+<ol>
+<li>PPT 제작</li>
+<li>카드뉴스 제작</li>
+<li>카드뉴스 자동화</li>
+<li>포스터 / 배너</li>
+<li>로고 디자인</li>
+<li>랜딩페이지 제작</li>
+<li>와이어프레임</li>
+<li>바이브 코딩</li>
+</ol>
+</blockquote>
+</article>
+<article id="pr-1" class="chapter"><h1>PPT 제작</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="pr-4" class="chapter"><h1>포스터 / 배너</h1>
+<article id="pr-2" class="chapter"><h1>카드뉴스 제작</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="pr-5" class="chapter"><h1>로고 디자인</h1>
+<article id="pr-3" class="chapter"><h1>카드뉴스 자동화</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="pr-6" class="chapter"><h1>랜딩페이지 제작</h1>
+<article id="pr-4" class="chapter"><h1>포스터 / 배너</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="pr-7" class="chapter"><h1>와이어프레임</h1>
+<article id="pr-5" class="chapter"><h1>로고 디자인</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
 <hr>
 </article>
-<article id="pr-8" class="chapter"><h1>바이브 코딩</h1>
+<article id="pr-6" class="chapter"><h1>랜딩페이지 제작</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-7" class="chapter"><h1>와이어프레임</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
+<blockquote>
+<p>준비 중입니다.</p>
+</blockquote>
+<hr>
+</article>
+<article id="pr-8" class="chapter"><h1>바이브 코딩</h1><div class="chapter-date">2026. 03. 19&nbsp;&nbsp;·&nbsp;&nbsp;작성자-ownuun</div>
 <blockquote>
 <p>준비 중입니다.</p>
 </blockquote>
@@ -1721,9 +1741,9 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 </article>
 </main>
 <script>
-const chapters=[{"id":"ov-0","title":"SPEC 디자인 개요","h2s":[{"title":"팀 소개 & 임무","anchor":"ov-h2-0-0"},{"title":"X(엑키스) 디자인 시스템","anchor":"ov-h2-0-1"},{"title":"방향성","anchor":"ov-h2-0-2"}]},{"id":"db-0","title":"Chapter 0. 왜 디자인을 알아야 하는가?","h2s":[{"title":"원칙 0-1. 이름의 법칙","anchor":"db-h2-0-0"},{"title":"원칙 0-2. 기초의 법칙","anchor":"db-h2-0-1"},{"title":"원칙 0-3. 훈련의 법칙","anchor":"db-h2-0-2"},{"title":"원칙 0-4. AI 시대의 법칙","anchor":"db-h2-0-3"},{"title":"본 자료의 사용법","anchor":"db-h2-0-4"}]},{"id":"db-1","title":"Chapter 1. 레이아웃의 4원칙 — C.R.A.P.","h2s":[{"title":"원칙 1. 대비의 법칙 (Contrast)","anchor":"db-h2-1-0"},{"title":"원칙 2. 반복의 법칙 (Repetition)","anchor":"db-h2-1-1"},{"title":"원칙 3. 정렬의 법칙 (Alignment)","anchor":"db-h2-1-2"},{"title":"원칙 4. 근접의 법칙 (Proximity)","anchor":"db-h2-1-3"},{"title":"C.R.A.P. 실전 체크리스트","anchor":"db-h2-1-4"}]},{"id":"db-2","title":"Chapter 2. 시각적 위계와 구도","h2s":[{"title":"원칙 5. 시각적 위계의 법칙 (Visual Hierarchy)","anchor":"db-h2-2-0"},{"title":"원칙 6. 시선 흐름의 법칙 — Z패턴과 F패턴","anchor":"db-h2-2-1"},{"title":"원칙 7. 여백의 법칙 (White Space)","anchor":"db-h2-2-2"},{"title":"원칙 8. 그리드의 법칙 (Grid System)","anchor":"db-h2-2-3"},{"title":"원칙 9. 구도의 법칙 (Composition)","anchor":"db-h2-2-4"},{"title":"구도 선택 가이드","anchor":"db-h2-2-5"},{"title":"Chapter 2 체크리스트","anchor":"db-h2-2-6"},{"title":"Part 1을 마치며","anchor":"db-h2-2-7"}]},{"id":"db-3","title":"Chapter 3. 색의 언어","h2s":[{"title":"3-1. 컬러 휠, 한 번만 제대로 이해하기","anchor":"db-h2-3-0"},{"title":"3-2. 안 망하는 색 조합 5가지","anchor":"db-h2-3-1"},{"title":"3-3. 따뜻한 색 vs 차가운 색","anchor":"db-h2-3-2"},{"title":"3-4. 명도, 채도, 색조 — 색을 조절하는 3가지 손잡이","anchor":"db-h2-3-3"},{"title":"3-5. RGB vs CMYK — 이걸 모르면 인쇄하고 후회합니다","anchor":"db-h2-3-4"},{"title":"3-6. 색 심리학 — 색이 전달하는 메시지","anchor":"db-h2-3-5"},{"title":"3-7. 실전 도구 3가지","anchor":"db-h2-3-6"},{"title":"Chapter 3 오늘의 체크리스트","anchor":"db-h2-3-7"}]},{"id":"db-4","title":"Chapter 4. 타이포그래피 — 글자의 힘","h2s":[{"title":"4-1. 글자의 해부학 — 이것만 알면 됩니다","anchor":"db-h2-4-0"},{"title":"4-2. 폰트의 4가지 대분류","anchor":"db-h2-4-1"},{"title":"4-3. 폰트 2개면 충분한 이유","anchor":"db-h2-4-2"},{"title":"4-4. 무료 한글 폰트 7종 완전 가이드","anchor":"db-h2-4-3"},{"title":"4-5. 폰트 조합 레시피 5가지","anchor":"db-h2-4-4"},{"title":"4-6. 폰트 레퍼런스 사이트 3곳","anchor":"db-h2-4-5"},{"title":"Chapter 4 오늘의 체크리스트","anchor":"db-h2-4-6"}]},{"id":"db-5","title":"Chapter 5. 이미지 다루기","h2s":[{"title":"5-1. 이미지가 보여주는 것 vs 의미하는 것","anchor":"db-h2-5-0"},{"title":"5-2. 좋은 이미지 고르는 3원칙","anchor":"db-h2-5-1"},{"title":"5-3. 이미지 자르기(Crop)의 기술","anchor":"db-h2-5-2"},{"title":"5-4. 누끼 따기 — 배경 제거","anchor":"db-h2-5-3"},{"title":"5-5. 이미지 합성 기초","anchor":"db-h2-5-4"},{"title":"5-6. 이미지 최적화 — 파일 형식과 용량","anchor":"db-h2-5-5"},{"title":"5-7. 무료 이미지 소스","anchor":"db-h2-5-6"},{"title":"Chapter 5 오늘의 체크리스트","anchor":"db-h2-5-7"},{"title":"전체 정리 — Part 2를 마치며","anchor":"db-h2-5-8"}]},{"id":"tl-0","title":"다루게 될 툴 소개","h2s":[]},{"id":"tl-1","title":"Genspark","h2s":[]},{"id":"tl-2","title":"Manus","h2s":[]},{"id":"tl-3","title":"Snapdeck","h2s":[]},{"id":"tl-4","title":"나노바나나 (Hailuo AI)","h2s":[]},{"id":"tl-5","title":"Claude Code","h2s":[]},{"id":"tl-6","title":"Canva","h2s":[]},{"id":"tl-7","title":"미리캔버스","h2s":[]},{"id":"tl-8","title":"Figma","h2s":[]},{"id":"tl-9","title":"Gamma","h2s":[]},{"id":"tl-10","title":"Ideogram","h2s":[]},{"id":"tl-11","title":"Pencil Dev","h2s":[]},{"id":"tl-12","title":"Pinterest","h2s":[]},{"id":"rf-0","title":"레퍼런스","h2s":[]},{"id":"rf-1","title":"디자인 영감","h2s":[]},{"id":"rf-2","title":"폰트 레퍼런스","h2s":[]},{"id":"rf-3","title":"색상 레퍼런스","h2s":[]},{"id":"rf-4","title":"로고 레퍼런스","h2s":[]},{"id":"rf-5","title":"템플릿 모음","h2s":[]},{"id":"pr-0","title":"활용","h2s":[]},{"id":"pr-1","title":"PPT 제작","h2s":[]},{"id":"pr-2","title":"카드뉴스 제작","h2s":[]},{"id":"pr-3","title":"카드뉴스 자동화","h2s":[]},{"id":"pr-4","title":"포스터 / 배너","h2s":[]},{"id":"pr-5","title":"로고 디자인","h2s":[]},{"id":"pr-6","title":"랜딩페이지 제작","h2s":[]},{"id":"pr-7","title":"와이어프레임","h2s":[]},{"id":"pr-8","title":"바이브 코딩","h2s":[]},{"id":"wk-1","title":"1주차: OT & 디자인 기초","h2s":[{"title":"1주차 — OT & 디자인 기초","anchor":"wk-h2-1-0"}]},{"id":"wk-2","title":"2주차: 준비 중","h2s":[{"title":"2주차 — 준비 중","anchor":"wk-h2-2-0"}]},{"id":"wk-3","title":"3주차: 준비 중","h2s":[{"title":"3주차 — 준비 중","anchor":"wk-h2-3-0"}]},{"id":"wk-4","title":"4주차: 준비 중","h2s":[{"title":"4주차 — 준비 중","anchor":"wk-h2-4-0"}]},{"id":"wk-5","title":"5주차: 준비 중","h2s":[{"title":"5주차 — 준비 중","anchor":"wk-h2-5-0"}]},{"id":"wk-6","title":"6주차: 준비 중","h2s":[{"title":"6주차 — 준비 중","anchor":"wk-h2-6-0"}]},{"id":"wk-7","title":"7주차: 준비 중","h2s":[{"title":"7주차 — 준비 중","anchor":"wk-h2-7-0"}]},{"id":"wk-8","title":"8주차: 준비 중","h2s":[{"title":"8주차 — 준비 중","anchor":"wk-h2-8-0"}]},{"id":"wk-9","title":"9주차: 준비 중","h2s":[{"title":"9주차 — 준비 중","anchor":"wk-h2-9-0"}]},{"id":"wk-10","title":"10주차: 준비 중","h2s":[{"title":"10주차 — 준비 중","anchor":"wk-h2-10-0"}]},{"id":"wk-11","title":"11주차: 준비 중","h2s":[{"title":"11주차 — 준비 중","anchor":"wk-h2-11-0"}]},{"id":"wk-12","title":"12주차: 준비 중","h2s":[{"title":"12주차 — 준비 중","anchor":"wk-h2-12-0"}]},{"id":"wk-13","title":"13주차: 준비 중","h2s":[{"title":"13주차 — 준비 중","anchor":"wk-h2-13-0"}]},{"id":"wk-14","title":"14주차: 준비 중","h2s":[{"title":"14주차 — 준비 중","anchor":"wk-h2-14-0"}]},{"id":"wk-15","title":"15주차: 준비 중","h2s":[{"title":"15주차 — 준비 중","anchor":"wk-h2-15-0"}]},{"id":"wk-16","title":"16주차: 준비 중","h2s":[{"title":"16주차 — 준비 중","anchor":"wk-h2-16-0"}]}];
+const chapters=[{"id":"ov-0","title":"개요","h2s":[{"title":"팀 소개 & 임무","anchor":"ov-h2-0-0"},{"title":"에센스 디자인 시스템","anchor":"ov-h2-0-1"},{"title":"SPEC 기반 색상","anchor":"ov-h2-0-2"},{"title":"방향성","anchor":"ov-h2-0-3"}]},{"id":"db-0","title":"Chapter 0. 왜 디자인을 알아야 하는가?","h2s":[{"title":"원칙 0-1. 이름의 법칙","anchor":"db-h2-0-0"},{"title":"원칙 0-2. 기초의 법칙","anchor":"db-h2-0-1"},{"title":"원칙 0-3. 훈련의 법칙","anchor":"db-h2-0-2"},{"title":"원칙 0-4. AI 시대의 법칙","anchor":"db-h2-0-3"},{"title":"본 자료의 사용법","anchor":"db-h2-0-4"}]},{"id":"db-1","title":"Chapter 1. 레이아웃의 4원칙 — C.R.A.P.","h2s":[{"title":"원칙 1. 대비의 법칙 (Contrast)","anchor":"db-h2-1-0"},{"title":"원칙 2. 반복의 법칙 (Repetition)","anchor":"db-h2-1-1"},{"title":"원칙 3. 정렬의 법칙 (Alignment)","anchor":"db-h2-1-2"},{"title":"원칙 4. 근접의 법칙 (Proximity)","anchor":"db-h2-1-3"}]},{"id":"db-2","title":"Chapter 2. 시각적 위계와 구도","h2s":[{"title":"원칙 5. 시각적 위계의 법칙 (Visual Hierarchy)","anchor":"db-h2-2-0"},{"title":"원칙 6. 시선 흐름의 법칙 — Z패턴과 F패턴","anchor":"db-h2-2-1"},{"title":"원칙 7. 여백의 법칙 (White Space)","anchor":"db-h2-2-2"},{"title":"원칙 8. 그리드의 법칙 (Grid System)","anchor":"db-h2-2-3"},{"title":"원칙 9. 구도의 법칙 (Composition)","anchor":"db-h2-2-4"},{"title":"구도 선택 가이드","anchor":"db-h2-2-5"},{"title":"Part 1을 마치며","anchor":"db-h2-2-6"}]},{"id":"db-3","title":"Chapter 3. 색의 언어","h2s":[{"title":"3-1. 컬러 휠, 한 번만 제대로 이해하기","anchor":"db-h2-3-0"},{"title":"3-2. 안 망하는 색 조합 5가지","anchor":"db-h2-3-1"},{"title":"3-3. 따뜻한 색 vs 차가운 색","anchor":"db-h2-3-2"},{"title":"3-4. 명도, 채도, 색조 — 색을 조절하는 3가지 손잡이","anchor":"db-h2-3-3"},{"title":"3-5. RGB vs CMYK — 이걸 모르면 인쇄하고 후회합니다","anchor":"db-h2-3-4"},{"title":"3-6. 색 심리학 — 색이 전달하는 메시지","anchor":"db-h2-3-5"},{"title":"3-7. 실전 도구 3가지","anchor":"db-h2-3-6"}]},{"id":"db-4","title":"Chapter 4. 타이포그래피 — 글자의 힘","h2s":[{"title":"4-1. 글자의 해부학 — 이것만 알면 됩니다","anchor":"db-h2-4-0"},{"title":"4-2. 폰트의 4가지 대분류","anchor":"db-h2-4-1"},{"title":"4-3. 폰트 2개면 충분한 이유","anchor":"db-h2-4-2"},{"title":"4-4. 무료 한글 폰트 7종 완전 가이드","anchor":"db-h2-4-3"},{"title":"4-5. 폰트 조합 레시피 5가지","anchor":"db-h2-4-4"},{"title":"4-6. 폰트 레퍼런스 사이트 3곳","anchor":"db-h2-4-5"}]},{"id":"db-5","title":"Chapter 5. 이미지 다루기","h2s":[{"title":"5-1. 이미지가 보여주는 것 vs 의미하는 것","anchor":"db-h2-5-0"},{"title":"5-2. 좋은 이미지 고르는 3원칙","anchor":"db-h2-5-1"},{"title":"5-3. 이미지 자르기(Crop)의 기술","anchor":"db-h2-5-2"},{"title":"5-4. 누끼 따기 — 배경 제거","anchor":"db-h2-5-3"},{"title":"5-5. 이미지 합성 기초","anchor":"db-h2-5-4"},{"title":"5-6. 이미지 최적화 — 파일 형식과 용량","anchor":"db-h2-5-5"},{"title":"5-7. 무료 이미지 소스","anchor":"db-h2-5-6"},{"title":"전체 정리 — Part 2를 마치며","anchor":"db-h2-5-7"}]},{"id":"tl-0","title":"개요","h2s":[]},{"id":"tl-1","title":"Genspark","h2s":[]},{"id":"tl-2","title":"Manus","h2s":[]},{"id":"tl-3","title":"Snapdeck","h2s":[]},{"id":"tl-4","title":"나노바나나 (Hailuo AI)","h2s":[]},{"id":"tl-5","title":"Claude Code","h2s":[]},{"id":"tl-6","title":"Canva","h2s":[]},{"id":"tl-7","title":"미리캔버스","h2s":[]},{"id":"tl-8","title":"Figma","h2s":[]},{"id":"tl-9","title":"Gamma","h2s":[]},{"id":"tl-10","title":"Ideogram","h2s":[]},{"id":"tl-11","title":"Pencil Dev","h2s":[]},{"id":"tl-12","title":"Pinterest","h2s":[]},{"id":"rf-0","title":"개요","h2s":[]},{"id":"rf-1","title":"디자인 영감","h2s":[]},{"id":"rf-2","title":"폰트 레퍼런스","h2s":[]},{"id":"rf-3","title":"색상 레퍼런스","h2s":[]},{"id":"rf-4","title":"로고 레퍼런스","h2s":[]},{"id":"rf-5","title":"템플릿 모음","h2s":[]},{"id":"pr-0","title":"개요","h2s":[]},{"id":"pr-1","title":"PPT 제작","h2s":[]},{"id":"pr-2","title":"카드뉴스 제작","h2s":[]},{"id":"pr-3","title":"카드뉴스 자동화","h2s":[]},{"id":"pr-4","title":"포스터 / 배너","h2s":[]},{"id":"pr-5","title":"로고 디자인","h2s":[]},{"id":"pr-6","title":"랜딩페이지 제작","h2s":[]},{"id":"pr-7","title":"와이어프레임","h2s":[]},{"id":"pr-8","title":"바이브 코딩","h2s":[]},{"id":"wk-1","title":"1주차: OT & 디자인 기초","h2s":[{"title":"1주차 — OT & 디자인 기초","anchor":"wk-h2-1-0"}]},{"id":"wk-2","title":"2주차: 준비 중","h2s":[{"title":"2주차 — 준비 중","anchor":"wk-h2-2-0"}]},{"id":"wk-3","title":"3주차: 준비 중","h2s":[{"title":"3주차 — 준비 중","anchor":"wk-h2-3-0"}]},{"id":"wk-4","title":"4주차: 준비 중","h2s":[{"title":"4주차 — 준비 중","anchor":"wk-h2-4-0"}]},{"id":"wk-5","title":"5주차: 준비 중","h2s":[{"title":"5주차 — 준비 중","anchor":"wk-h2-5-0"}]},{"id":"wk-6","title":"6주차: 준비 중","h2s":[{"title":"6주차 — 준비 중","anchor":"wk-h2-6-0"}]},{"id":"wk-7","title":"7주차: 준비 중","h2s":[{"title":"7주차 — 준비 중","anchor":"wk-h2-7-0"}]},{"id":"wk-8","title":"8주차: 준비 중","h2s":[{"title":"8주차 — 준비 중","anchor":"wk-h2-8-0"}]},{"id":"wk-9","title":"9주차: 준비 중","h2s":[{"title":"9주차 — 준비 중","anchor":"wk-h2-9-0"}]},{"id":"wk-10","title":"10주차: 준비 중","h2s":[{"title":"10주차 — 준비 중","anchor":"wk-h2-10-0"}]},{"id":"wk-11","title":"11주차: 준비 중","h2s":[{"title":"11주차 — 준비 중","anchor":"wk-h2-11-0"}]},{"id":"wk-12","title":"12주차: 준비 중","h2s":[{"title":"12주차 — 준비 중","anchor":"wk-h2-12-0"}]},{"id":"wk-13","title":"13주차: 준비 중","h2s":[{"title":"13주차 — 준비 중","anchor":"wk-h2-13-0"}]},{"id":"wk-14","title":"14주차: 준비 중","h2s":[{"title":"14주차 — 준비 중","anchor":"wk-h2-14-0"}]},{"id":"wk-15","title":"15주차: 준비 중","h2s":[{"title":"15주차 — 준비 중","anchor":"wk-h2-15-0"}]},{"id":"wk-16","title":"16주차: 준비 중","h2s":[{"title":"16주차 — 준비 중","anchor":"wk-h2-16-0"}]}];
 let currentIdx=0;
-function go(id,btn){document.querySelectorAll('.chapter').forEach(el=>el.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active');else{const b=document.querySelector('.nav-item[data-target="'+id+'"]');if(b)b.classList.add('active')}currentIdx=chapters.findIndex(c=>c.id===id);updateToc();addNavButtons();window.scrollTo({top:0,behavior:'smooth'});if(window.innerWidth<=768){document.querySelector('.side').classList.remove('open');document.querySelector('.overlay').classList.remove('show')}}
+function go(id,btn){document.querySelectorAll('.chapter').forEach(el=>el.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active');else{const b=document.querySelector('.nav-item[data-target="'+id+'"]');if(b)b.classList.add('active')}currentIdx=chapters.findIndex(c=>c.id===id);history.replaceState(null,null,'#'+id);updateToc();addNavButtons();if(btn)window.scrollTo({top:0,behavior:'smooth'});if(window.innerWidth<=768){document.querySelector('.side').classList.remove('open');document.querySelector('.overlay').classList.remove('show')}}
 function updateToc(){const toc=document.getElementById('toc');const ch=chapters[currentIdx];if(!ch||!ch.h2s||ch.h2s.length===0){toc.innerHTML='';return}let h='<div class="toc-title">On this page</div>';ch.h2s.forEach(x=>{h+='<a href="#'+x.anchor+'" onclick="event.preventDefault();smoothTo(\''+x.anchor+'\')">'+x.title.substring(0,35)+'</a>'});toc.innerHTML=h}
 function smoothTo(a){const el=document.getElementById(a);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
 function addNavButtons(){document.querySelectorAll('.ch-nav').forEach(e=>e.remove());const ch=chapters[currentIdx];const article=document.getElementById(ch.id);if(!article)return;const prev=currentIdx>0?chapters[currentIdx-1]:null;const next=currentIdx<chapters.length-1?chapters[currentIdx+1]:null;const nav=document.createElement('div');nav.className='ch-nav';const pb=prev?'<button onclick="goIdx('+(currentIdx-1)+')">이전</button>':'<div></div>';const nb=next?'<button onclick="goIdx('+(currentIdx+1)+')">다음</button>':'<div></div>';nav.innerHTML=pb+nb;article.appendChild(nav)}
@@ -1732,8 +1752,10 @@ function toggleMenu(){document.querySelector('.side').classList.toggle('open');d
 function toggleSection(btn){btn.closest('.nav-section').classList.toggle('open')}
 function toggleTheme(){const html=document.documentElement;const isDark=html.getAttribute('data-theme')==='dark';html.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('themeIcon').innerHTML=isDark?'<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>':'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';localStorage.setItem('theme',isDark?'light':'dark')}
 (function(){const saved=localStorage.getItem('theme');if(saved)document.documentElement.setAttribute('data-theme',saved)})();
+if(location.hash){const hid=location.hash.slice(1);const ch=chapters.find(c=>c.id===hid);if(ch){go(hid);window.scrollTo(0,parseInt(sessionStorage.getItem('scrollY')||'0'))}}
 updateToc();addNavButtons();
-window.addEventListener('scroll',()=>{const links=document.querySelectorAll('.toc a');if(!links.length)return;const ch=chapters[currentIdx];if(!ch||!ch.h2s)return;let active=null;ch.h2s.forEach(h=>{const el=document.getElementById(h.anchor);if(el&&el.getBoundingClientRect().top<120)active=h.anchor});links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active))});
+document.addEventListener('click',function(e){if(e.target.tagName==='CODE'&&e.target.closest('.chapter')){const text=e.target.textContent;navigator.clipboard.writeText(text).then(()=>{e.target.classList.add('copied');setTimeout(()=>e.target.classList.remove('copied'),1200)})}});
+window.addEventListener('scroll',()=>{sessionStorage.setItem('scrollY',window.scrollY);const pb=document.getElementById('progressBar');const h=document.documentElement.scrollHeight-window.innerHeight;pb.style.width=h>0?(window.scrollY/h*100)+'%':'0%';const links=document.querySelectorAll('.toc a');if(!links.length)return;const ch=chapters[currentIdx];if(!ch||!ch.h2s)return;let active=null;ch.h2s.forEach(h2=>{const el=document.getElementById(h2.anchor);if(el&&el.getBoundingClientRect().top<120)active=h2.anchor});links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active))});
 </script>
 </body>
 </html>
