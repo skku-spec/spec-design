@@ -24,7 +24,7 @@ const logoMap = {
   'Genspark': 'logo-genspark.png',
   'Manus': 'logo-manus.png',
   'Snapdeck': 'logo-snapdeck.png',
-  '나노바나나 (Hailuo AI)': 'logo-hailuo.png',
+  'Gemini 나노바나나': 'logo-hailuo.png',
   'Claude Code': 'logo-claude.png',
   'Canva': 'logo-canva.png',
   '미리캔버스': 'logo-miricanvas.png',
@@ -142,7 +142,7 @@ sidebar += sidebarSection('1. SPEC 디자인 개요', overviewChapters, false);
 sidebar += sidebarSection('2. 디자인 기초', designChapters, false);
 sidebar += sidebarSection('3. 툴 소개', toolsChapters, false);
 sidebar += sidebarSection('4. 레퍼런스 사이트 모음', refsChapters, false);
-sidebar += sidebarSection('5. 활용 가이드', practicalChapters, false);
+sidebar += sidebarSection('5. 제너레이팅', practicalChapters, false);
 sidebar += '\n<div class="nav-divider">주차별 챌린지</div>\n';
 let ws = '<div class="nav-section">\n';
 ws += '  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>챌린지</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>\n';
