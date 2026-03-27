@@ -3,6 +3,7 @@ const path = require('path');
 const { marked } = require('marked');
 const BASE = path.resolve(__dirname);
 marked.setOptions({ gfm: true, breaks: false });
+const SITE_VERSION = '1.0';
 
 function parseFile(filepath) {
   const md = fs.readFileSync(filepath, 'utf-8');
@@ -15,7 +16,9 @@ function parseFile(filepath) {
     const titleMatch = section.match(/^# (.+)/m);
     if (!titleMatch) continue;
     const contentLength = section.replace(/^# .+/m, '').trim().length;
-    result.push({ title: titleMatch[1].trim(), md: section, contentLength, date: dateStr });
+    const vMatch = section.match(/<!--\s*v([\d.]+)\s*-->/);
+    const version = vMatch ? vMatch[1] : '1.0';
+    result.push({ title: titleMatch[1].trim(), md: section, contentLength, date: dateStr, version });
   }
   return result;
 }
@@ -58,49 +61,52 @@ function buildChapters(rawList, prefix, merge) {
     let h2i = 0;
     html = html.replace(/<h2>/g, () => '<h2 id="' + prefix + '-h2-' + id + '-' + h2i++ + '">');
     const isPending = rc.md.includes('준비 중입니다') || rc.md.includes('준비 중');
-    chapters.push({ id: prefix + '-' + id++, title: rc.title, html, h2s, isPending });
+    const hasNewTag = rc.md.includes('<!-- new -->');
+    const isNew = hasNewTag || (rc.version === SITE_VERSION && SITE_VERSION !== '1.0');
+    chapters.push({ id: prefix + '-' + id++, title: rc.title, html, h2s, isPending, isNew, version: rc.version });
   }
   return chapters;
 }
 
-const overviewRaw = parseFile(`${BASE}/01-개요/overview.md`);
-const designBasicsRaw = [
-  ...parseFile(`${BASE}/01-개요/디자인기초-상.md`),
-  ...parseFile(`${BASE}/01-개요/디자인기초-하.md`),
-];
-const overviewChapters = buildChapters(overviewRaw, 'ov', false);
-const designChapters = buildChapters(designBasicsRaw, 'db', true);
+// ═══════════════════════════════════════════
+// DESIGN MODE — 디자인팀 콘텐츠
+// ═══════════════════════════════════════════
+const overviewChapters = buildChapters(parseFile(`${BASE}/01-개요/overview.md`), 'ov', false);
+const tipsChapters = buildChapters(parseFile(`${BASE}/02-꿀팁모음/tips.md`), 'tp', false);
+const influencerChapters = buildChapters(parseFile(`${BASE}/03-인플루언서/influencers.md`), 'inf', false);
 const toolsChapters = buildChapters(parseFile(`${BASE}/02-툴소개/tools.md`), 'tl', false);
 const refsChapters = buildChapters(parseFile(`${BASE}/03-레퍼런스/references.md`), 'rf', false);
 const practicalChapters = buildChapters(parseFile(`${BASE}/04-활용가이드/practical.md`), 'pr', false);
 
 const weeklyData = [
-  { week: 1, title: 'OT & 디자인 기초', content: `
-## 1주차 — OT & 디자인 기초
+  { week: 1, title: 'OT & 환경 세팅', content: `
+## 1주차 — OT & 환경 세팅
 
-### 강의 목표
-1. CRAP 원칙(대비, 반복, 정렬, 근접)을 이해하고 실제 디자인에서 찾아낼 수 있습니다.
-2. 색상 조합과 폰트 선택의 기본 기준을 학습합니다.
-3. 이미지 다루기 기초(누끼, 해상도)를 실습합니다.
+### 강의 내용
 
-### 시간 배분
-
-| 시간 | 내용 |
-|------|------|
-| 0:00~0:10 | 아이스브레이킹 — 가장 못 만든 디자인 공유 |
-| 0:10~0:30 | Ch.0: 왜 디자인인가? (Before/After 퀴즈) |
-| 0:30~0:50 | Ch.1~2: CRAP 원칙 + 위계/구도 |
-| 0:50~1:10 | Ch.3~4: 색상 + 타이포그래피 (폰트 조합 실습) |
-| 1:10~1:20 | Ch.5: 이미지 다루기 (누끼 따기 데모) |
-| 1:20~1:30 | Q&A + 다음 시간 예고 |
+1. **Claude Code 세팅** — 터미널(CMD)에서 Claude Code를 설치하고 기본 환경을 구성했습니다.
+2. **Antigravity 설치** — Antigravity를 설치한 뒤, Claude Code를 익스텐션으로 추가했습니다. 단축키는 Cmd+2(Mac) / Ctrl+2(Windows)로 설정하고, Alt+E / Ctrl+E / Cmd+E 키 바인딩도 함께 세팅했습니다.
+3. **퍼미션 댄저러스 모드** — 매번 확인을 받지 않고 AI가 자율적으로 작업을 진행하는 모드입니다. 작업물이 삭제될 수 있는 위험이 있지만, 컴퓨터에 큰 타격은 없습니다. 한 번 경험하면 경각심이 생기므로, 알고만 있으면 됩니다.
+4. **개요 설명** — 에센스 개념과 우리 팀이 맡은 임무를 함께 살펴보았습니다.
+5. **피그마 에센스 자료 공유** — 피그마에 준비된 에센스 레퍼런스를 팀원들에게 공유하고, 이를 바탕으로 로고를 만들어보는 과제를 안내했습니다.
 
 ### 과제
-- 눈누(noonnu.cc)에서 무료 폰트 7종 다운받아 설치하기
-- CRAP 원칙으로 인스타그램 포스터 1개 분석해보기
 
-### 참고 자료
-- 가이드: SPEC 디자인 개요 > 디자인 기초
-- YouTube: "17년차 디자인 업계인이 풀어주는 암묵적 룰"
+에센스를 활용하여 SPEC 로고를 만들어보기 — Gemini 나노바나나에 에센스 이미지의 질감을 입력하고, 타이포그래피와 결합한 로고를 제작합니다.
+
+### 과제 예시 — 에센스 활용 로고 제작
+
+액체 금속 질감의 에센스 이미지를 Gemini에 입력하고, "이 질감을 활용해서 타이포그래피 SPEC이라는 글씨를 만들어줘"라고 프롬프팅했습니다. **타이포그래피**와 **질감**이라는 키워드를 활용한 것이 포인트입니다.
+
+![에센스 활용 SPEC 로고 — 변형 1](essence-logo-1.png)
+
+![에센스 활용 SPEC 로고 — 변형 2](essence-logo-2.png)
+
+![에센스 활용 SPEC 로고 — 변형 3](essence-logo-3.png)
+
+![에센스 활용 SPEC 로고 — 변형 4](essence-logo-4.png)
+
+![에센스 활용 SPEC 로고 — 변형 5](essence-logo-5.png)
 ` },
 ];
 for (let w = 2; w <= 16; w++) {
@@ -118,8 +124,22 @@ const weeklyChapters = weeklyData.map(w => {
   return { id: wid, title: w.week + '주차: ' + w.title, html, h2s, week: w.week };
 });
 
-const allChapters = [...overviewChapters, ...designChapters, ...toolsChapters, ...refsChapters, ...practicalChapters, ...weeklyChapters];
+const designAllChapters = [...overviewChapters, ...tipsChapters, ...influencerChapters, ...toolsChapters, ...refsChapters, ...practicalChapters, ...weeklyChapters];
 
+// ═══════════════════════════════════════════
+// CODING MODE — 바이브 코딩 콘텐츠
+// ═══════════════════════════════════════════
+const codingOverviewChapters = buildChapters(parseFile(`${BASE}/vibe-coding/overview.md`), 'vc', false);
+const codingIdeChapters = buildChapters(parseFile(`${BASE}/vibe-coding/ide.md`), 'vi', false);
+const codingLlmChapters = buildChapters(parseFile(`${BASE}/vibe-coding/llm-vs-agent.md`), 'vl', false);
+const codingClaudeChapters = buildChapters(parseFile(`${BASE}/vibe-coding/claude-code.md`), 'vcc', false);
+const codingHistoryChapters = buildChapters(parseFile(`${BASE}/vibe-coding/context-history.md`), 'vh', false);
+const codingAdvancedChapters = buildChapters(parseFile(`${BASE}/vibe-coding/advanced.md`), 'va', false);
+const codingAllChapters = [...codingOverviewChapters, ...codingIdeChapters, ...codingLlmChapters, ...codingClaudeChapters, ...codingHistoryChapters, ...codingAdvancedChapters];
+
+// ═══════════════════════════════════════════
+// SIDEBAR 생성
+// ═══════════════════════════════════════════
 const short = t => t.replace(/^Chapter \d+[\.:]\s*/, '').replace(/^Part \d+[\.:]\s*/, '').replace(/^비전공자를 위한 /, '').replace(/^디자인 기초 Part 2 — /, '').substring(0, 30);
 
 function sidebarSection(label, chapters, defaultOpen) {
@@ -131,19 +151,22 @@ function sidebarSection(label, chapters, defaultOpen) {
     const icon = logo ? `<img class="nav-logo" src="${logo}" alt="">` : '';
     const dim = ch.isPending ? ' dim' : '';
     const suffix = ch.isPending ? ' - 준비중' : '';
-    s += `    <button class="nav-item${dim}" data-target="${ch.id}" onclick="go('${ch.id}',this)">${icon}${short(ch.title)}${suffix}</button>\n`;
+    const newBadge = ch.isNew ? '<span class="new-badge">NEW</span>' : '';
+    s += `    <button class="nav-item${dim}" data-target="${ch.id}" onclick="go('${ch.id}',this)">${icon}${short(ch.title)}${suffix}${newBadge}</button>\n`;
   });
   s += '  </div>\n</div>\n';
   return s;
 }
 
-let sidebar = '<div class="nav-divider">가이드</div>\n';
-sidebar += sidebarSection('1. SPEC 디자인 개요', overviewChapters, false);
-sidebar += sidebarSection('2. 디자인 기초', designChapters, false);
-sidebar += sidebarSection('3. 툴 소개', toolsChapters, false);
-sidebar += sidebarSection('4. 레퍼런스 사이트 모음', refsChapters, false);
-sidebar += sidebarSection('5. 제너레이팅', practicalChapters, false);
-sidebar += '\n<div class="nav-divider">주차별 챌린지</div>\n';
+// Design sidebar
+let designSidebar = '<div class="nav-divider">가이드</div>\n';
+designSidebar += sidebarSection('1. SPEC 디자인 개요', overviewChapters, false);
+designSidebar += sidebarSection('2. 디자인 꿀팁 모음', tipsChapters, false);
+designSidebar += sidebarSection('3. 인플루언서 모음', influencerChapters, false);
+designSidebar += sidebarSection('4. 툴 소개', toolsChapters, false);
+designSidebar += sidebarSection('5. 레퍼런스 사이트 모음', refsChapters, false);
+designSidebar += sidebarSection('6. 제너레이팅', practicalChapters, false);
+designSidebar += '\n<div class="nav-divider">주차별 챌린지</div>\n';
 let ws = '<div class="nav-section">\n';
 ws += '  <button class="nav-section-toggle" onclick="toggleSection(this)"><span>챌린지</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>\n';
 ws += '  <div class="nav-section-items">\n';
@@ -152,16 +175,33 @@ weeklyChapters.forEach(w => {
   ws += `    <button class="nav-item${dim}" data-target="${w.id}" onclick="go('${w.id}',this)">${w.week}주차 — ${weeklyData.find(d => d.week === w.week).title}</button>\n`;
 });
 ws += '  </div>\n</div>\n';
-sidebar += ws;
+designSidebar += ws;
 
-const contentHtml = allChapters.map((c, i) =>
-  `<article id="${c.id}" class="chapter${i === 0 ? ' active' : ''}">${c.html}</article>`
+// Coding sidebar
+let codingSidebar = '<div class="nav-divider">바이브 코딩</div>\n';
+codingSidebar += sidebarSection('1. 개요', codingOverviewChapters, false);
+codingSidebar += sidebarSection('2. IDE란?', codingIdeChapters, false);
+codingSidebar += sidebarSection('3. LLM vs 코딩 에이전트', codingLlmChapters, false);
+codingSidebar += sidebarSection('4. Claude Code', codingClaudeChapters, false);
+codingSidebar += sidebarSection('5. 컨텍스트와 모델 발전사', codingHistoryChapters, false);
+codingSidebar += sidebarSection('6. 고급 기능', codingAdvancedChapters, false);
+
+// ═══════════════════════════════════════════
+// CONTENT HTML 생성
+// ═══════════════════════════════════════════
+const designContentHtml = designAllChapters.map((c, i) =>
+  `<article id="${c.id}" class="chapter${i === 0 ? ' active' : ''}" data-mode="design">${c.html}</article>`
 ).join('\n');
 
-const htmlTemplate = fs.readFileSync(`${BASE}/site/index.html`, 'utf-8');
+const codingContentHtml = codingAllChapters.map(c =>
+  `<article id="${c.id}" class="chapter" data-mode="coding">${c.html}</article>`
+).join('\n');
 
+// ═══════════════════════════════════════════
+// HTML 생성
+// ═══════════════════════════════════════════
 const html = `<!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="dark" data-mode="design">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -169,28 +209,47 @@ const html = `<!DOCTYPE html>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-[data-theme="dark"]{--bg:#202020;--bg-sidebar:#1a1a1a;--bg-card:#2a2a2a;--bg-hover:rgba(255,108,15,0.08);--bg-code:#161616;--text:#c8c8c8;--text-bright:#FCFCF8;--text-dim:#8a8a8a;--text-dimmer:#666;--primary:#FF6C0F;--primary-variant:#FF9900;--secondary:#4C4780;--secondary-light:rgba(76,71,128,0.15);--border:rgba(255,255,255,0.08);--border-strong:rgba(255,255,255,0.15);--quote-bg:rgba(255,108,15,0.06);--table-head:#333;--table-stripe:rgba(255,255,255,0.02);--shadow:rgba(0,0,0,0.3)}
-[data-theme="light"]{--bg:#FCFCF8;--bg-sidebar:#f5f4f0;--bg-card:#fff;--bg-hover:rgba(255,108,15,0.06);--bg-code:#f5f4f0;--text:#3a3a3a;--text-bright:#202020;--text-dim:#777;--text-dimmer:#999;--primary:#FF6C0F;--primary-variant:#FF9900;--secondary:#4C4780;--secondary-light:rgba(76,71,128,0.08);--border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.12);--quote-bg:rgba(255,108,15,0.05);--table-head:#FF6C0F;--table-stripe:rgba(0,0,0,0.02);--shadow:rgba(0,0,0,0.08)}
+
+/* ── BASE THEME (구조적 변수 — 테마 전용) ── */
+[data-theme="dark"]{--bg:#202020;--bg-sidebar:#1a1a1a;--bg-card:#2a2a2a;--text:#c8c8c8;--text-bright:#FCFCF8;--text-dim:#8a8a8a;--text-dimmer:#666;--secondary:#4C4780;--secondary-light:rgba(76,71,128,0.15);--border:rgba(255,255,255,0.08);--border-strong:rgba(255,255,255,0.15);--table-stripe:rgba(255,255,255,0.02);--shadow:rgba(0,0,0,0.3)}
+[data-theme="light"]{--bg:#FCFCF8;--bg-sidebar:#f5f4f0;--bg-card:#fff;--text:#3a3a3a;--text-bright:#202020;--text-dim:#777;--text-dimmer:#999;--secondary:#4C4780;--secondary-light:rgba(76,71,128,0.08);--border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.12);--table-stripe:rgba(0,0,0,0.02);--shadow:rgba(0,0,0,0.08)}
+
+/* ── MODE × THEME 조합 (액센트 변수) ── */
+[data-mode="design"][data-theme="dark"]{--primary:#FF6C0F;--primary-variant:#FF9900;--bg-hover:rgba(255,108,15,0.08);--bg-code:#161616;--quote-bg:rgba(255,108,15,0.06);--table-head:#333;--code-bg:rgba(255,108,15,0.12)}
+[data-mode="design"][data-theme="light"]{--primary:#FF6C0F;--primary-variant:#FF9900;--bg-hover:rgba(255,108,15,0.06);--bg-code:#f5f4f0;--quote-bg:rgba(255,108,15,0.05);--table-head:#FF6C0F;--code-bg:rgba(255,108,15,0.08)}
+[data-mode="coding"][data-theme="dark"]{--primary:#4C4780;--primary-variant:#6B63B5;--bg-hover:rgba(76,71,128,0.1);--bg-code:#1a1a2e;--quote-bg:rgba(76,71,128,0.08);--table-head:#2d2a4a;--code-bg:rgba(76,71,128,0.15)}
+[data-mode="coding"][data-theme="light"]{--primary:#4C4780;--primary-variant:#6B63B5;--bg-hover:rgba(76,71,128,0.06);--bg-code:#f3f2f8;--quote-bg:rgba(76,71,128,0.05);--table-head:#4C4780;--code-bg:rgba(76,71,128,0.08)}
+
 :root{--sidebar-w:260px;--toc-w:200px;--header-h:56px}
 html{scroll-behavior:smooth}
 body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:160%;letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 .hdr{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--bg-sidebar);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;z-index:100;backdrop-filter:blur(12px)}
-.progress-bar{position:fixed;top:var(--header-h);left:0;height:6px;background:var(--primary);z-index:101;transition:width .1s linear;width:0}
+.progress-bar{position:fixed;top:var(--header-h);left:0;height:6px;background:var(--primary);z-index:101;transition:width .1s linear,background .3s;width:0}
 .hdr-left{display:flex;align-items:center;gap:12px}
 .hdr-menu{display:none;background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:8px;color:var(--text-bright)}
 .hdr-menu:hover{background:var(--bg-hover)}
 .hdr-menu svg{width:20px;height:20px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
 .logo-mark{display:flex;align-items:center}
-.logo-mark img{height:28px;width:auto;filter:brightness(0) saturate(100%) invert(42%) sepia(93%) saturate(1700%) hue-rotate(360deg) brightness(101%) contrast(105%)}
-.logo-sub{font-size:12px;color:var(--text-dim);font-weight:500;letter-spacing:-0.01em}
+.logo-mark img{height:28px;width:auto;transition:filter .3s}
+[data-mode="design"] .logo-mark img{filter:brightness(0) saturate(100%) invert(42%) sepia(93%) saturate(1700%) hue-rotate(360deg) brightness(101%) contrast(105%)}
+[data-mode="coding"] .logo-mark img{filter:brightness(0) saturate(100%) invert(30%) sepia(50%) saturate(600%) hue-rotate(220deg) brightness(90%) contrast(95%)}
+.logo-sub{font-size:12px;color:var(--text-dim);font-weight:500;letter-spacing:-0.01em;transition:color .3s}
 .logo-divider{width:1px;height:24px;background:var(--border-strong);margin:0 4px}
+
+.mode-tabs{display:flex;gap:4px;margin:0 2px 12px;background:var(--bg-code);border-radius:10px;padding:3px;border:1px solid var(--border)}
+.mode-tab{flex:1;background:none;border:none;padding:8px 0;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-dim);cursor:pointer;transition:all .25s;text-align:center}
+.mode-tab:hover{color:var(--text-bright)}
+.mode-tab.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+
 .hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
 .theme-btn{background:none;border:1px solid var(--border-strong);border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dim);transition:all .2s}
 .theme-btn:hover{background:var(--bg-hover);color:var(--primary);border-color:var(--primary)}
 .side{position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--bg-sidebar);border-right:1px solid var(--border);overflow-y:auto;padding:16px 10px;z-index:90;transition:transform .25s ease}
 .side::-webkit-scrollbar{width:3px}
 .side::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+.side-content{display:none}
+.side-content.active{display:block}
 .nav-divider{font-size:10px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.1em;padding:20px 12px 8px;border-top:1px solid var(--border);margin-top:8px}
 .nav-divider:first-child{border-top:none;margin-top:0}
 .nav-section{margin-bottom:4px}
@@ -205,6 +264,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .nav-item:hover{background:var(--bg-hover);color:var(--text-bright)}
 .nav-item.active{color:var(--primary);font-weight:600;border-left-color:var(--primary);background:var(--bg-hover)}
 .nav-item.dim{opacity:0.45}
+.new-badge{background:var(--primary);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:6px;letter-spacing:0.03em;vertical-align:middle}
+.version-tag{font-size:10px;color:var(--text-dimmer);font-weight:500;margin-left:8px;padding:2px 6px;border:1px solid var(--border);border-radius:4px}
 .toc{position:fixed;top:var(--header-h);right:0;bottom:0;width:var(--toc-w);padding:24px 16px;overflow-y:auto;font-size:12px}
 .toc-title{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
 .toc a{display:block;padding:4px 0;color:var(--text-dimmer);text-decoration:none;border-left:2px solid transparent;padding-left:10px;transition:all .15s;line-height:1.5}
@@ -224,10 +285,10 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .chapter img{max-width:100%;min-width:unset;height:auto;border-radius:12px;margin:16px auto;display:block}
 .chapter img.title-logo{display:inline;width:auto;height:1.2em;max-width:none;margin:0 12px 0 0;border-radius:8px;vertical-align:middle}
 .img-caption{font-size:13px;color:var(--text-dimmer);text-align:center;margin:-8px 0 24px;font-style:italic}
-.chapter code{cursor:pointer;position:relative;transition:background .2s;background:rgba(255,108,15,0.12);color:var(--primary);padding:3px 8px;border-radius:5px;font-size:14px}
+.chapter code{cursor:pointer;position:relative;transition:background .2s;background:var(--code-bg);color:var(--primary);padding:3px 8px;border-radius:5px;font-size:14px}
 .chapter code:hover{background:var(--primary);color:#fff}
 .chapter code.copied::after{content:'복사됨';position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-style:normal;white-space:nowrap}
-.chapter a{color:var(--primary);text-decoration:none;border-bottom:1px solid var(--primary);transition:border .15s}
+.chapter a{color:var(--primary);text-decoration:none;border-bottom:1px solid var(--primary);transition:border .15s,color .15s}
 .chapter a:hover{color:var(--primary-variant);border-bottom-color:var(--primary-variant)}
 .chapter strong{font-weight:700;color:var(--text-bright)}
 .chapter p strong{color:var(--primary)}
@@ -237,7 +298,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .chapter li{margin-bottom:8px;color:var(--text)}
 .chapter li>ul,.chapter li>ol{margin-top:8px;margin-bottom:0}
 .chapter li strong{color:var(--text-bright)}
-.chapter blockquote{border-left:4px solid var(--primary);margin:20px 0;padding:20px 24px;border-radius:0 10px 10px 0;font-size:17px;line-height:170%;font-style:normal;background:rgba(255,108,15,0.08);box-shadow:none}
+.chapter blockquote{border-left:4px solid var(--primary);margin:20px 0;padding:20px 24px;border-radius:0 10px 10px 0;font-size:17px;line-height:170%;font-style:normal;background:var(--quote-bg);box-shadow:none}
 .chapter blockquote p{font-size:17px;margin-bottom:12px}
 .chapter blockquote p:last-child{margin-bottom:0}
 .chapter blockquote strong{color:var(--text-bright)}
@@ -256,9 +317,12 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .chapter hr{border:none;height:1px;background:var(--border);margin:40px 0}
 .ch-nav{display:flex;gap:16px;margin-top:60px;padding-top:24px;border-top:1px solid var(--border)}
 .ch-nav button{flex:1;background:var(--primary);border:none;border-radius:10px;padding:14px 24px;color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
-.ch-nav button:hover{background:var(--primary-variant);transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,108,15,0.3)}
+.ch-nav button:hover{background:var(--primary-variant);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.2)}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:80}
 .overlay.show{display:block}
+
+
+
 @media(max-width:1100px){.toc{display:none}.main{margin-right:0}}
 @media(max-width:768px){.hdr-menu{display:flex;align-items:center;justify-content:center}.side{transform:translateX(-100%);width:280px;box-shadow:4px 0 24px var(--shadow)}.side.open{transform:translateX(0)}.main{margin-left:0}.chapter{padding:32px 20px 80px}.chapter h1{font-size:36px}.chapter h2{font-size:28px}.chapter h3{font-size:20px}.chapter h4{font-size:19px}.chapter p,.chapter li,.chapter ul,.chapter ol{font-size:18px}.chapter blockquote,.chapter blockquote p,.chapter blockquote ol{font-size:17px}.logo-sub,.logo-divider{display:none}}
 </style>
@@ -268,7 +332,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <header class="hdr">
   <div class="hdr-left">
     <button class="hdr-menu" onclick="toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
-    <a class="logo" href="#"><span class="logo-mark"><img src="logo.png" alt="SPEC"></span><span class="logo-divider"></span><span class="logo-sub">Design Guide</span></a>
+    <a class="logo" href="#"><span class="logo-mark"><img src="logo.png" alt="SPEC"></span><span class="logo-divider"></span><span class="logo-sub" id="logoSub">Design Guide</span><span class="version-tag">v${SITE_VERSION}</span></a>
   </div>
   <div class="hdr-right">
     <button class="theme-btn" onclick="toggleTheme()" title="테마 전환"><svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
@@ -276,28 +340,149 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 </header>
 <div class="overlay" onclick="toggleMenu()"></div>
 <nav class="side">
-${sidebar}
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="design" onclick="switchMode('design')">디자인팀</button>
+    <button class="mode-tab" data-mode="coding" onclick="switchMode('coding')">바이브 코딩</button>
+  </div>
+  <div class="side-content active" id="sidebar-design">${designSidebar}</div>
+  <div class="side-content" id="sidebar-coding">${codingSidebar}</div>
 </nav>
 <aside class="toc" id="toc"><div class="toc-title">On this page</div></aside>
 <main class="main">
-${contentHtml}
+${designContentHtml}
+${codingContentHtml}
 </main>
 <script>
-const chapters=${JSON.stringify(allChapters.map(c=>({id:c.id,title:c.title,h2s:c.h2s})))};
+const modes={
+  design:{chapters:${JSON.stringify(designAllChapters.map(c=>({id:c.id,title:c.title,h2s:c.h2s})))},defaultId:'${designAllChapters[0].id}'},
+  coding:{chapters:${JSON.stringify(codingAllChapters.map(c=>({id:c.id,title:c.title,h2s:c.h2s})))},defaultId:'${codingAllChapters[0].id}'}
+};
+let currentMode='design';
 let currentIdx=0;
-function go(id,btn){document.querySelectorAll('.chapter').forEach(el=>el.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active');else{const b=document.querySelector('.nav-item[data-target="'+id+'"]');if(b)b.classList.add('active')}currentIdx=chapters.findIndex(c=>c.id===id);history.replaceState(null,null,'#'+id);updateToc();addNavButtons();if(btn)window.scrollTo({top:0,behavior:'smooth'});if(window.innerWidth<=768){document.querySelector('.side').classList.remove('open');document.querySelector('.overlay').classList.remove('show')}}
-function updateToc(){const toc=document.getElementById('toc');const ch=chapters[currentIdx];if(!ch||!ch.h2s||ch.h2s.length===0){toc.innerHTML='';return}let h='<div class="toc-title">On this page</div>';ch.h2s.forEach(x=>{h+='<a href="#'+x.anchor+'" onclick="event.preventDefault();smoothTo(\\''+x.anchor+'\\')">'+x.title.substring(0,35)+'</a>'});toc.innerHTML=h}
+
+function getChapters(){return modes[currentMode].chapters}
+
+let _switching=false;
+function go(id,btn){
+  const chapters=getChapters();
+  document.querySelectorAll('.chapter').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el)el.classList.add('active');
+  if(btn)btn.classList.add('active');
+  else{const b=document.querySelector('#sidebar-'+currentMode+' .nav-item[data-target="'+id+'"]');if(b)b.classList.add('active')}
+  currentIdx=chapters.findIndex(c=>c.id===id);
+  if(currentIdx<0)currentIdx=0;
+  history.replaceState(null,null,'#'+currentMode+'/'+id);
+  localStorage.setItem('lastChapter-'+currentMode,id);
+  updateToc();addNavButtons();
+  if(btn)window.scrollTo({top:0,behavior:'smooth'});
+
+}
+
+function updateToc(){
+  const toc=document.getElementById('toc');
+  const chapters=getChapters();
+  const ch=chapters[currentIdx];
+  if(!ch||!ch.h2s||ch.h2s.length===0){toc.innerHTML='';return}
+  let h='<div class="toc-title">On this page</div>';
+  ch.h2s.forEach(x=>{h+='<a href="#'+x.anchor+'" onclick="event.preventDefault();smoothTo(\\''+x.anchor+'\\')">'+x.title.substring(0,35)+'</a>'});
+  toc.innerHTML=h
+}
+
 function smoothTo(a){const el=document.getElementById(a);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
-function addNavButtons(){document.querySelectorAll('.ch-nav').forEach(e=>e.remove());const ch=chapters[currentIdx];const article=document.getElementById(ch.id);if(!article)return;const prev=currentIdx>0?chapters[currentIdx-1]:null;const next=currentIdx<chapters.length-1?chapters[currentIdx+1]:null;const nav=document.createElement('div');nav.className='ch-nav';const pb=prev?'<button onclick="goIdx('+(currentIdx-1)+')">이전</button>':'<div></div>';const nb=next?'<button onclick="goIdx('+(currentIdx+1)+')">다음</button>':'<div></div>';nav.innerHTML=pb+nb;article.appendChild(nav)}
-function goIdx(i){const ch=chapters[i];if(!ch)return;go(ch.id)}
+
+function addNavButtons(){
+  document.querySelectorAll('.ch-nav').forEach(e=>e.remove());
+  const chapters=getChapters();
+  const ch=chapters[currentIdx];
+  if(!ch)return;
+  const article=document.getElementById(ch.id);
+  if(!article)return;
+  const prev=currentIdx>0?chapters[currentIdx-1]:null;
+  const next=currentIdx<chapters.length-1?chapters[currentIdx+1]:null;
+  const nav=document.createElement('div');nav.className='ch-nav';
+  const pb=prev?'<button onclick="goIdx('+(currentIdx-1)+')">이전</button>':'<div></div>';
+  const nb=next?'<button onclick="goIdx('+(currentIdx+1)+')">다음</button>':'<div></div>';
+  nav.innerHTML=pb+nb;article.appendChild(nav)
+}
+
+function goIdx(i){const ch=getChapters()[i];if(!ch)return;go(ch.id)}
 function toggleMenu(){document.querySelector('.side').classList.toggle('open');document.querySelector('.overlay').classList.toggle('show')}
 function toggleSection(btn){btn.closest('.nav-section').classList.toggle('open')}
-function toggleTheme(){const html=document.documentElement;const isDark=html.getAttribute('data-theme')==='dark';html.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('themeIcon').innerHTML=isDark?'<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>':'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';localStorage.setItem('theme',isDark?'light':'dark')}
-(function(){const saved=localStorage.getItem('theme');if(saved)document.documentElement.setAttribute('data-theme',saved)})();
-if(location.hash){const hid=location.hash.slice(1);const ch=chapters.find(c=>c.id===hid);if(ch){go(hid);window.scrollTo(0,parseInt(sessionStorage.getItem('scrollY')||'0'))}}
-updateToc();addNavButtons();
+
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('themeIcon').innerHTML=isDark?'<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>':'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  localStorage.setItem('theme',isDark?'light':'dark')
+}
+
+function switchMode(mode){
+  if(mode===currentMode)return;
+  const prevMode=currentMode;
+  currentMode=mode;
+  _switching=true;
+  document.documentElement.setAttribute('data-mode',mode);
+  document.getElementById('sidebar-'+prevMode).classList.remove('active');
+  document.getElementById('sidebar-'+mode).classList.add('active');
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active',t.dataset.mode===mode));
+  document.getElementById('logoSub').textContent=mode==='design'?'Design Guide':'Vibe Coding';
+  document.querySelectorAll('.chapter').forEach(el=>el.classList.remove('active'));
+  const saved=localStorage.getItem('lastChapter-'+mode);
+  const target=saved||modes[mode].defaultId;
+  go(target);
+  _switching=false;
+  window.scrollTo({top:0});
+  localStorage.setItem('mode',mode)
+}
+
+// ── Init ──
+(function(){
+  const saved=localStorage.getItem('theme');
+  if(saved)document.documentElement.setAttribute('data-theme',saved);
+
+  const hash=location.hash.slice(1);
+  let mode,chId;
+  if(hash.includes('/')){
+    const parts=hash.split('/');
+    mode=parts[0];chId=parts[1]
+  }else{
+    mode=localStorage.getItem('mode')||'design';
+    chId=hash||null
+  }
+  if(!modes[mode])mode='design';
+  currentMode=mode;
+  document.documentElement.setAttribute('data-mode',mode);
+  document.getElementById('sidebar-design').classList.toggle('active',mode==='design');
+  document.getElementById('sidebar-coding').classList.toggle('active',mode==='coding');
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active',t.dataset.mode===mode));
+  document.getElementById('logoSub').textContent=mode==='design'?'Design Guide':'Vibe Coding';
+
+  const target=chId||localStorage.getItem('lastChapter-'+mode)||modes[mode].defaultId;
+  if(modes[mode].chapters.find(c=>c.id===target)){
+    go(target);
+    window.scrollTo(0,parseInt(sessionStorage.getItem('scrollY-'+mode)||'0'))
+  }else{go(modes[mode].defaultId)}
+})();
+
 document.addEventListener('click',function(e){if(e.target.tagName==='CODE'&&e.target.closest('.chapter')){const text=e.target.textContent;navigator.clipboard.writeText(text).then(()=>{e.target.classList.add('copied');setTimeout(()=>e.target.classList.remove('copied'),1200)})}});
-window.addEventListener('scroll',()=>{sessionStorage.setItem('scrollY',window.scrollY);const pb=document.getElementById('progressBar');const h=document.documentElement.scrollHeight-window.innerHeight;pb.style.width=h>0?(window.scrollY/h*100)+'%':'0%';const links=document.querySelectorAll('.toc a');if(!links.length)return;const ch=chapters[currentIdx];if(!ch||!ch.h2s)return;let active=null;ch.h2s.forEach(h2=>{const el=document.getElementById(h2.anchor);if(el&&el.getBoundingClientRect().top<120)active=h2.anchor});links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active))});
+
+window.addEventListener('scroll',()=>{
+  sessionStorage.setItem('scrollY-'+currentMode,window.scrollY);
+  const pb=document.getElementById('progressBar');
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  pb.style.width=h>0?(window.scrollY/h*100)+'%':'0%';
+  const links=document.querySelectorAll('.toc a');
+  if(!links.length)return;
+  const chapters=getChapters();
+  const ch=chapters[currentIdx];
+  if(!ch||!ch.h2s)return;
+  let active=null;
+  ch.h2s.forEach(h2=>{const el=document.getElementById(h2.anchor);if(el&&el.getBoundingClientRect().top<120)active=h2.anchor});
+  links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active))
+});
 </script>
 </body>
 </html>`;
@@ -305,10 +490,7 @@ window.addEventListener('scroll',()=>{sessionStorage.setItem('scrollY',window.sc
 const outPath = `${BASE}/site/index.html`;
 fs.writeFileSync(outPath, html, 'utf-8');
 const s = fs.statSync(outPath);
-console.log('Done:', (s.size/1024).toFixed(1)+'KB', allChapters.length, 'total');
-console.log('  Overview:', overviewChapters.length);
-console.log('  Design Basics:', designChapters.length);
-console.log('  Tools:', toolsChapters.length);
-console.log('  References:', refsChapters.length);
-console.log('  Practical:', practicalChapters.length);
-console.log('  Weekly:', weeklyChapters.length);
+console.log('Done:', (s.size/1024).toFixed(1)+'KB');
+console.log('  Design:', designAllChapters.length, 'chapters');
+console.log('  Coding:', codingAllChapters.length, 'chapters');
+console.log('  Total:', designAllChapters.length + codingAllChapters.length);
