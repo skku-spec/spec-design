@@ -135,7 +135,10 @@ const codingLlmChapters = buildChapters(parseFile(`${BASE}/vibe-coding/llm-vs-ag
 const codingClaudeChapters = buildChapters(parseFile(`${BASE}/vibe-coding/claude-code.md`), 'vcc', false);
 const codingHistoryChapters = buildChapters(parseFile(`${BASE}/vibe-coding/context-history.md`), 'vh', false);
 const codingAdvancedChapters = buildChapters(parseFile(`${BASE}/vibe-coding/advanced.md`), 'va', false);
-const codingAllChapters = [...codingOverviewChapters, ...codingIdeChapters, ...codingLlmChapters, ...codingClaudeChapters, ...codingHistoryChapters, ...codingAdvancedChapters];
+const codingPrdChapters = buildChapters(parseFile(`${BASE}/vibe-coding/prd.md`), 'vp', false);
+const codingDeployChapters = buildChapters(parseFile(`${BASE}/vibe-coding/deploy.md`), 'vd', false);
+const codingSupabaseChapters = buildChapters(parseFile(`${BASE}/vibe-coding/supabase.md`), 'vs', false);
+const codingAllChapters = [...codingOverviewChapters, ...codingIdeChapters, ...codingLlmChapters, ...codingClaudeChapters, ...codingHistoryChapters, ...codingAdvancedChapters, ...codingPrdChapters, ...codingDeployChapters, ...codingSupabaseChapters];
 
 // ═══════════════════════════════════════════
 // SIDEBAR 생성
@@ -185,6 +188,9 @@ codingSidebar += sidebarSection('3. LLM vs 코딩 에이전트', codingLlmChapte
 codingSidebar += sidebarSection('4. Claude Code', codingClaudeChapters, false);
 codingSidebar += sidebarSection('5. 컨텍스트와 모델 발전사', codingHistoryChapters, false);
 codingSidebar += sidebarSection('6. 고급 기능', codingAdvancedChapters, false);
+codingSidebar += sidebarSection('7. PRD 작성법', codingPrdChapters, false);
+codingSidebar += sidebarSection('8. GitHub + Vercel 배포', codingDeployChapters, false);
+codingSidebar += sidebarSection('9. Supabase 백엔드', codingSupabaseChapters, false);
 
 // ═══════════════════════════════════════════
 // CONTENT HTML 생성
@@ -207,6 +213,7 @@ const html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPEC Design Guide</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -243,6 +250,11 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .mode-tab.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
 
 .hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.auth-btn{background:var(--bg-card);border:1px solid var(--border-strong);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s}
+.auth-btn:hover{background:var(--bg-hover);color:var(--primary);border-color:var(--primary)}
+.user-info{display:flex;align-items:center;gap:8px}
+.user-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--border-strong)}
+.user-name{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--text-dim);font-weight:600}
 .theme-btn{background:none;border:1px solid var(--border-strong);border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dim);transition:all .2s}
 .theme-btn:hover{background:var(--bg-hover);color:var(--primary);border-color:var(--primary)}
 .side{position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--bg-sidebar);border-right:1px solid var(--border);overflow-y:auto;padding:16px 10px;z-index:90;transition:transform .25s ease}
@@ -315,6 +327,28 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .chapter pre{background:var(--bg-code);color:var(--text);padding:22px;border-radius:12px;overflow-x:auto;margin:24px 0;font-size:14px;line-height:1.6;border:1px solid var(--border)}
 .chapter pre code{background:none;padding:0;color:inherit;font-size:inherit}
 .chapter hr{border:none;height:1px;background:var(--border);margin:40px 0}
+.comments-section{margin-top:52px;padding-top:20px;border-top:1px solid var(--border)}
+.comments-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.comments-title{font-size:22px;font-weight:800;color:var(--text-bright)}
+.comments-count{font-size:14px;color:var(--text-dim);font-weight:600;margin-left:8px}
+.comment-list{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.comment-item{display:flex;gap:10px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--bg-card)}
+.comment-item-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-strong);flex-shrink:0}
+.comment-item-body{flex:1;min-width:0}
+.comment-item-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.comment-item-name{font-size:14px;font-weight:700;color:var(--text-bright)}
+.comment-item-time{font-size:12px;color:var(--text-dimmer)}
+.comment-item-content{font-size:15px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.comment-delete-btn{margin-left:auto;background:none;border:none;color:var(--text-dimmer);font-size:12px;cursor:pointer}
+.comment-delete-btn:hover{color:#ff5f5f}
+.comment-empty{font-size:14px;color:var(--text-dim);padding:14px 0}
+.comment-input{display:flex;flex-direction:column;gap:8px}
+.comment-textarea{width:100%;min-height:92px;resize:vertical;border-radius:10px;border:1px solid var(--border-strong);background:var(--bg-code);color:var(--text);font-family:inherit;font-size:14px;padding:10px 12px;outline:none}
+.comment-textarea:focus{border-color:var(--primary)}
+.comment-input-actions{display:flex;justify-content:flex-end}
+.comment-submit-btn{background:var(--primary);border:none;border-radius:8px;padding:9px 14px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.comment-submit-btn:hover{background:var(--primary-variant)}
+.comment-login-hint{font-size:14px;color:var(--text-dim);padding:10px 0}
 .ch-nav{display:flex;gap:16px;margin-top:60px;padding-top:24px;border-top:1px solid var(--border)}
 .ch-nav button{flex:1;background:var(--primary);border:none;border-radius:10px;padding:14px 24px;color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
 .ch-nav button:hover{background:var(--primary-variant);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.2)}
@@ -335,6 +369,12 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
     <a class="logo" href="#"><span class="logo-mark"><img src="logo.png" alt="SPEC"></span><span class="logo-divider"></span><span class="logo-sub" id="logoSub">Design Guide</span><span class="version-tag">v${SITE_VERSION}</span></a>
   </div>
   <div class="hdr-right">
+    <button id="authLoginBtn" class="auth-btn" onclick="signInWithGoogle()">로그인</button>
+    <div id="authUserInfo" class="user-info" hidden>
+      <img id="authAvatar" class="user-avatar" src="" alt="">
+      <span id="authName" class="user-name"></span>
+      <button class="auth-btn" onclick="signOut()">로그아웃</button>
+    </div>
     <button class="theme-btn" onclick="toggleTheme()" title="테마 전환"><svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
   </div>
 </header>
@@ -359,6 +399,10 @@ const modes={
 };
 let currentMode='design';
 let currentIdx=0;
+let supabaseClient=null;
+let currentUser=null;
+const SUPABASE_URL='https://mjywaiocicjasefcztqr.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXdhaW9jaWNqYXNlZmN6dHFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NTA4MDgsImV4cCI6MjA5MDUyNjgwOH0.AXZM9vlv_O8dNcTPFIolgfaZhKnYvYHvzlYUb2Zpd-U';
 
 function getChapters(){return modes[currentMode].chapters}
 
@@ -376,6 +420,7 @@ function go(id,btn){
   history.replaceState(null,null,'#'+currentMode+'/'+id);
   localStorage.setItem('lastChapter-'+currentMode,id);
   updateToc();addNavButtons();
+  loadComments(id);
   if(btn)window.scrollTo({top:0,behavior:'smooth'});
 
 }
@@ -399,6 +444,7 @@ function addNavButtons(){
   if(!ch)return;
   const article=document.getElementById(ch.id);
   if(!article)return;
+  ensureCommentSection(ch.id);
   const prev=currentIdx>0?chapters[currentIdx-1]:null;
   const next=currentIdx<chapters.length-1?chapters[currentIdx+1]:null;
   const nav=document.createElement('div');nav.className='ch-nav';
@@ -438,8 +484,199 @@ function switchMode(mode){
   localStorage.setItem('mode',mode)
 }
 
+function formatTimeAgo(dateStr){
+  const date=new Date(dateStr);
+  const diffSec=Math.max(1,Math.floor((Date.now()-date.getTime())/1000));
+  if(diffSec<60)return '방금 전';
+  if(diffSec<3600)return Math.floor(diffSec/60)+'분 전';
+  if(diffSec<86400)return Math.floor(diffSec/3600)+'시간 전';
+  if(diffSec<604800)return Math.floor(diffSec/86400)+'일 전';
+  return date.getFullYear()+'.'+String(date.getMonth()+1).padStart(2,'0')+'.'+String(date.getDate()).padStart(2,'0');
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+}
+
+function getDisplayName(user){
+  if(!user)return '익명';
+  const md=user.user_metadata||{};
+  return md.full_name||md.name||md.user_name||user.email||'익명';
+}
+
+function getAvatarUrl(user){
+  if(!user)return 'https://api.dicebear.com/8.x/initials/svg?seed=U';
+  const md=user.user_metadata||{};
+  return md.avatar_url||md.picture||'https://api.dicebear.com/8.x/initials/svg?seed='+encodeURIComponent(getDisplayName(user));
+}
+
+function updateAuthUI(){
+  const loginBtn=document.getElementById('authLoginBtn');
+  const userInfo=document.getElementById('authUserInfo');
+  if(!loginBtn||!userInfo)return;
+  if(currentUser){
+    loginBtn.hidden=true;
+    userInfo.hidden=false;
+    document.getElementById('authAvatar').src=getAvatarUrl(currentUser);
+    document.getElementById('authName').textContent=getDisplayName(currentUser);
+  }else{
+    loginBtn.hidden=false;
+    userInfo.hidden=true;
+  }
+  document.querySelectorAll('.comments-section').forEach(section=>{
+    const form=section.querySelector('.comment-input');
+    const hint=section.querySelector('.comment-login-hint');
+    if(!form||!hint)return;
+    form.hidden=!currentUser;
+    hint.hidden=!!currentUser;
+  });
+}
+
+async function initSupabase(){
+  if(supabaseClient)return;
+  if(!window.supabase||!window.supabase.createClient)return;
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  currentUser=session?session.user:null;
+  updateAuthUI();
+  supabaseClient.auth.onAuthStateChange(function(_event,sessionNow){
+    currentUser=sessionNow?sessionNow.user:null;
+    updateAuthUI();
+    const active=getChapters()[currentIdx];
+    if(active)loadComments(active.id);
+  });
+}
+
+async function signInWithGoogle(){
+  if(!supabaseClient)await initSupabase();
+  if(!supabaseClient)return;
+  await supabaseClient.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo:window.location.origin+window.location.pathname}
+  });
+}
+
+async function signOut(){
+  if(!supabaseClient)return;
+  await supabaseClient.auth.signOut();
+}
+
+function ensureCommentSection(chapterId){
+  const article=document.getElementById(chapterId);
+  if(!article)return null;
+  let section=article.querySelector('.comments-section');
+  if(!section){
+    section=document.createElement('section');
+    section.className='comments-section';
+    section.innerHTML='\
+      <div class="comments-head">\
+        <div class="comments-title">댓글 <span class="comments-count">0</span></div>\
+      </div>\
+      <div class="comment-list"></div>\
+      <form class="comment-input">\
+        <textarea class="comment-textarea" placeholder="댓글을 입력하세요"></textarea>\
+        <div class="comment-input-actions"><button type="submit" class="comment-submit-btn">댓글 작성</button></div>\
+      </form>\
+      <div class="comment-login-hint">로그인하면 댓글을 작성할 수 있습니다</div>';
+    section.querySelector('.comment-input').addEventListener('submit',async function(e){
+      e.preventDefault();
+      const textarea=section.querySelector('.comment-textarea');
+      const content=textarea.value.trim();
+      if(!content)return;
+      await submitComment(chapterId,content);
+      textarea.value='';
+    });
+    article.appendChild(section);
+  }
+  updateAuthUI();
+  return section;
+}
+
+function renderComments(comments,chapterId){
+  const section=ensureCommentSection(chapterId);
+  if(!section)return;
+  const countEl=section.querySelector('.comments-count');
+  const listEl=section.querySelector('.comment-list');
+  countEl.textContent=String(comments.length);
+  if(!comments.length){
+    listEl.innerHTML='<div class="comment-empty">아직 댓글이 없습니다. 첫 댓글을 남겨보세요.</div>';
+    return;
+  }
+  listEl.innerHTML=comments.map(c=>{
+    const own=currentUser&&c.user_id===currentUser.id;
+    const fallbackName=(c.user_id||'익명').slice(0,8);
+    const name=escapeHtml(c.user_name||fallbackName);
+    const avatar=escapeHtml(c.user_avatar||'https://api.dicebear.com/8.x/initials/svg?seed='+encodeURIComponent(name));
+    const time=escapeHtml(formatTimeAgo(c.created_at));
+    const content=escapeHtml(c.content||'');
+    const del=own?'<button class="comment-delete-btn" data-id="'+c.id+'">삭제</button>':'';
+    return '<div class="comment-item">\
+      <img class="comment-item-avatar" src="'+avatar+'" alt="">\
+      <div class="comment-item-body">\
+        <div class="comment-item-top"><span class="comment-item-name">'+name+'</span><span class="comment-item-time">'+time+'</span>'+del+'</div>\
+        <div class="comment-item-content">'+content+'</div>\
+      </div>\
+    </div>';
+  }).join('');
+  listEl.querySelectorAll('.comment-delete-btn').forEach(btn=>{
+    btn.addEventListener('click',async function(){
+      await deleteComment(btn.getAttribute('data-id'));
+    });
+  });
+}
+
+async function loadComments(chapterId){
+  const section=ensureCommentSection(chapterId);
+  if(!section)return;
+  if(!supabaseClient)await initSupabase();
+  if(!supabaseClient){
+    renderComments([],chapterId);
+    return;
+  }
+  const {data,error}=await supabaseClient
+    .from('comments')
+    .select('id, chapter_id, user_id, user_name, user_avatar, content, created_at')
+    .eq('chapter_id',chapterId)
+    .order('created_at',{ascending:false});
+  if(error){
+    renderComments([],chapterId);
+    return;
+  }
+  renderComments(data||[],chapterId);
+}
+
+async function submitComment(chapterId,content){
+  if(!supabaseClient)await initSupabase();
+  if(!supabaseClient||!currentUser)return;
+  const payload={
+    chapter_id:chapterId,
+    user_id:currentUser.id,
+    user_name:getDisplayName(currentUser),
+    user_avatar:getAvatarUrl(currentUser),
+    content
+  };
+  const {error}=await supabaseClient.from('comments').insert(payload);
+  if(error)return;
+  await loadComments(chapterId);
+}
+
+async function deleteComment(commentId){
+  if(!supabaseClient||!currentUser)return;
+  const {error}=await supabaseClient.from('comments').delete().eq('id',commentId).eq('user_id',currentUser.id);
+  if(error)return;
+  const ch=getChapters()[currentIdx];
+  if(ch)await loadComments(ch.id);
+}
+
 // ── Init ──
 (function(){
+  initSupabase();
   const saved=localStorage.getItem('theme');
   if(saved)document.documentElement.setAttribute('data-theme',saved);
 
