@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark" data-mode="design">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPEC Books — 로그인</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[data-theme="dark"]{--bg:#202020;--bg-sidebar:#1a1a1a;--bg-card:#2a2a2a;--text:#c8c8c8;--text-bright:#FCFCF8;--text-dim:#8a8a8a;--text-dimmer:#666;--border:rgba(255,255,255,0.08);--border-strong:rgba(255,255,255,0.15);--shadow:rgba(0,0,0,0.3)}
+[data-theme="light"]{--bg:#FCFCF8;--bg-sidebar:#f5f4f0;--bg-card:#fff;--text:#3a3a3a;--text-bright:#202020;--text-dim:#777;--text-dimmer:#999;--border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.12);--shadow:rgba(0,0,0,0.08)}
+[data-mode="design"][data-theme="dark"]{--primary:#FF6C0F;--primary-variant:#FF9900;--bg-hover:rgba(255,108,15,0.08);--bg-code:#161616}
+[data-mode="design"][data-theme="light"]{--primary:#FF6C0F;--primary-variant:#FF9900;--bg-hover:rgba(255,108,15,0.06);--bg-code:#f5f4f0}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+a{text-decoration:none;color:inherit}
+.hdr{height:64px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);background:var(--bg-sidebar)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-variant));display:grid;place-items:center;font-size:14px;font-weight:800;color:#fff}
+.brand-txt{font-size:20px;font-weight:800;letter-spacing:-0.03em;color:var(--text-bright)}
+.wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--bg-card);border:1px solid var(--border-strong);border-radius:20px;padding:40px 36px;width:400px;max-width:100%;box-shadow:0 20px 60px var(--shadow)}
+.card-title{font-size:28px;font-weight:800;color:var(--text-bright);margin-bottom:4px}
+.card-sub{font-size:14px;color:var(--text-dim);margin-bottom:28px}
+.tabs{display:flex;gap:4px;background:var(--bg-code);border-radius:10px;padding:3px;border:1px solid var(--border);margin-bottom:24px}
+.tab{flex:1;background:none;border:none;padding:9px 0;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;color:var(--text-dim);cursor:pointer;transition:all .2s;text-align:center}
+.tab:hover{color:var(--text-bright)}
+.tab.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field label{font-size:13px;font-weight:600;color:var(--text-dim)}
+.field input{width:100%;padding:11px 14px;border:1px solid var(--border-strong);border-radius:10px;background:var(--bg-code);color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border .2s}
+.field input:focus{border-color:var(--primary)}
+.submit-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-variant));color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,108,15,0.3)}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;font-size:12px;color:var(--text-dimmer)}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.google-btn{width:100%;padding:11px;border:1px solid var(--border-strong);border-radius:10px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.google-btn:hover{background:var(--bg-hover);border-color:var(--primary)}
+.google-btn svg{width:18px;height:18px}
+.msg{display:none;font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:14px}
+.msg.err{display:block;background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.3);color:#ff5f5f}
+.msg.ok{display:block;background:rgba(80,200,80,0.1);border:1px solid rgba(80,200,80,0.3);color:#50c850}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);margin-top:20px;transition:color .2s}
+.back:hover{color:var(--primary)}
+.back svg{width:16px;height:16px}
+.footer{text-align:center;padding:20px;font-size:12px;color:var(--text-dimmer)}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <a class="brand" href="store.html">
+    <div class="logo">S</div>
+    <span class="brand-txt">SPEC Books</span>
+  </a>
+</header>
+<div class="wrap">
+  <div class="card">
+    <div class="card-title" id="formTitle">로그인</div>
+    <div class="card-sub" id="formSub">SPEC Books에 오신 것을 환영합니다</div>
+    <div class="tabs">
+      <button class="tab active" id="tabLogin" onclick="switchTab('login')">로그인</button>
+      <button class="tab" id="tabSignup" onclick="switchTab('signup')">회원가입</button>
+    </div>
+    <div class="msg" id="msg"></div>
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="field">
+        <label for="loginEmail">이메일</label>
+        <input type="email" id="loginEmail" placeholder="email@example.com" required>
+      </div>
+      <div class="field">
+        <label for="loginPw">비밀번호</label>
+        <input type="password" id="loginPw" placeholder="6자 이상" minlength="6" required>
+      </div>
+      <button type="submit" class="submit-btn" id="loginBtn">로그인</button>
+    </form>
+    <form id="signupForm" onsubmit="handleSignup(event)" hidden>
+      <div class="field">
+        <label for="signupName">이름 (닉네임)</label>
+        <input type="text" id="signupName" placeholder="표시될 이름" required>
+      </div>
+      <div class="field">
+        <label for="signupEmail">이메일</label>
+        <input type="email" id="signupEmail" placeholder="email@example.com" required>
+      </div>
+      <div class="field">
+        <label for="signupPw">비밀번호</label>
+        <input type="password" id="signupPw" placeholder="6자 이상" minlength="6" required>
+      </div>
+      <button type="submit" class="submit-btn" id="signupBtn">회원가입</button>
+    </form>
+    <div class="divider">또는</div>
+    <button class="google-btn" onclick="googleLogin()">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 0 12c0 1.94.46 3.77 1.28 5.39l3.56-2.84.01-.46z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Google로 로그인
+    </button>
+    <a class="back" href="store.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>스토어로 돌아가기</a>
+  </div>
+</div>
+<footer class="footer">&copy; 2025 SPEC 4기 디자인팀</footer>
+<script>
+var SUPABASE_URL='https://mjywaiocicjasefcztqr.supabase.co';
+var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXdhaW9jaWNqYXNlZmN6dHFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NTA4MDgsImV4cCI6MjA5MDUyNjgwOH0.AXZM9vlv_O8dNcTPFIolgfaZhKnYvYHvzlYUb2Zpd-U';
+var sb=null;
+
+async function init(){
+  if(!window.supabase)return;
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{detectSessionInUrl:true,flowType:'pkce',persistSession:true}});
+  var params=new URLSearchParams(window.location.search);
+  if(params.has('code')){
+    try{await sb.auth.exchangeCodeForSession(params.get('code'))}catch(e){}
+    history.replaceState(null,'',window.location.pathname);
+  }
+  var {data:{session}}=await sb.auth.getSession();
+  if(session){
+    var redirect=sessionStorage.getItem('authRedirect')||'store.html';
+    sessionStorage.removeItem('authRedirect');
+    window.location.href=redirect;
+  }
+}
+init();
+
+function switchTab(mode){
+  document.getElementById('msg').className='msg';
+  document.getElementById('msg').textContent='';
+  if(mode==='login'){
+    document.getElementById('tabLogin').classList.add('active');
+    document.getElementById('tabSignup').classList.remove('active');
+    document.getElementById('loginForm').hidden=false;
+    document.getElementById('signupForm').hidden=true;
+    document.getElementById('formTitle').textContent='로그인';
+    document.getElementById('formSub').textContent='SPEC Books에 오신 것을 환영합니다';
+  }else{
+    document.getElementById('tabLogin').classList.remove('active');
+    document.getElementById('tabSignup').classList.add('active');
+    document.getElementById('loginForm').hidden=true;
+    document.getElementById('signupForm').hidden=false;
+    document.getElementById('formTitle').textContent='회원가입';
+    document.getElementById('formSub').textContent='이메일로 새 계정을 만드세요';
+  }
+}
+
+function showMsg(type,text){
+  var el=document.getElementById('msg');
+  el.className='msg '+type;
+  el.textContent=text;
+}
+
+async function handleLogin(e){
+  e.preventDefault();
+  if(!sb)return;
+  var btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.textContent='로그인 중...';
+  var {error}=await sb.auth.signInWithPassword({
+    email:document.getElementById('loginEmail').value.trim(),
+    password:document.getElementById('loginPw').value
+  });
+  btn.disabled=false;btn.textContent='로그인';
+  if(error){showMsg('err',error.message==='Invalid login credentials'?'이메일 또는 비밀번호가 틀렸습니다':error.message);return}
+  var redirect=sessionStorage.getItem('authRedirect')||'store.html';
+  sessionStorage.removeItem('authRedirect');
+  window.location.href=redirect;
+}
+
+async function handleSignup(e){
+  e.preventDefault();
+  if(!sb)return;
+  var btn=document.getElementById('signupBtn');
+  btn.disabled=true;btn.textContent='가입 중...';
+  var name=document.getElementById('signupName').value.trim();
+  var {data,error}=await sb.auth.signUp({
+    email:document.getElementById('signupEmail').value.trim(),
+    password:document.getElementById('signupPw').value,
+    options:{data:{full_name:name,name:name}}
+  });
+  btn.disabled=false;btn.textContent='회원가입';
+  if(error){showMsg('err',error.message);return}
+  if(data.user&&data.user.identities&&data.user.identities.length===0){showMsg('err','이미 가입된 이메일입니다');return}
+  if(!data.session){showMsg('ok','이메일 인증 링크를 발송했습니다. 메일함을 확인해주세요.');return}
+  window.location.href='store.html';
+}
+
+async function googleLogin(){
+  if(!sb)return;
+  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/login.html'}});
+}
+</script>
+</body>
+</html>

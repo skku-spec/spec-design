@@ -140,6 +140,32 @@ const codingDeployChapters = buildChapters(parseFile(`${BASE}/vibe-coding/deploy
 const codingSupabaseChapters = buildChapters(parseFile(`${BASE}/vibe-coding/supabase.md`), 'vs', false);
 const codingAllChapters = [...codingOverviewChapters, ...codingIdeChapters, ...codingLlmChapters, ...codingClaudeChapters, ...codingHistoryChapters, ...codingAdvancedChapters, ...codingPrdChapters, ...codingDeployChapters, ...codingSupabaseChapters];
 
+const booksConfig = [
+  { id: 'vibe-coding-claude', title: 'Claude Code 입문', files: ['vibe-coding/claude-code.md'], prefix: 'bcc', category: 'vibe-coding' },
+  { id: 'vibe-coding-prd', title: 'PRD 작성법', files: ['vibe-coding/prd.md'], prefix: 'bpr', category: 'vibe-coding' },
+  { id: 'vibe-coding-deploy', title: 'GitHub + Vercel 배포', files: ['vibe-coding/deploy.md'], prefix: 'bdp', category: 'vibe-coding' },
+  { id: 'vibe-coding-supabase', title: 'Supabase 백엔드 입문', files: ['vibe-coding/supabase.md'], prefix: 'bsb', category: 'vibe-coding' },
+];
+
+const booksData = {};
+const bookChaptersHtml = [];
+booksConfig.forEach(book => {
+  let allChapters = [];
+  book.files.forEach(f => {
+    const chapters = buildChapters(parseFile(`${BASE}/${f}`), book.prefix, false);
+    allChapters = allChapters.concat(chapters);
+  });
+  booksData[book.id] = {
+    title: book.title,
+    category: book.category,
+    chapters: allChapters.map(c => ({ id: c.id, title: c.title, h2s: c.h2s })),
+    defaultId: allChapters[0] ? allChapters[0].id : ''
+  };
+  allChapters.forEach(c => {
+    bookChaptersHtml.push(`<article id="${c.id}" class="chapter" data-book="${book.id}">${c.html}</article>`);
+  });
+});
+
 // ═══════════════════════════════════════════
 // SIDEBAR 생성
 // ═══════════════════════════════════════════
@@ -391,12 +417,15 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <main class="main">
 ${designContentHtml}
 ${codingContentHtml}
+${bookChaptersHtml.join('\n')}
 </main>
 <script>
 const modes={
   design:{chapters:${JSON.stringify(designAllChapters.map(c=>({id:c.id,title:c.title,h2s:c.h2s})))},defaultId:'${designAllChapters[0].id}'},
   coding:{chapters:${JSON.stringify(codingAllChapters.map(c=>({id:c.id,title:c.title,h2s:c.h2s})))},defaultId:'${codingAllChapters[0].id}'}
 };
+const books=${JSON.stringify(booksData)};
+let currentBook=null;
 let currentMode='design';
 let currentIdx=0;
 let supabaseClient=null;
@@ -404,7 +433,10 @@ let currentUser=null;
 const SUPABASE_URL='https://mjywaiocicjasefcztqr.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXdhaW9jaWNqYXNlZmN6dHFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NTA4MDgsImV4cCI6MjA5MDUyNjgwOH0.AXZM9vlv_O8dNcTPFIolgfaZhKnYvYHvzlYUb2Zpd-U';
 
-function getChapters(){return modes[currentMode].chapters}
+function getChapters(){
+  if(currentBook&&books[currentBook])return books[currentBook].chapters;
+  return modes[currentMode].chapters;
+}
 
 let _switching=false;
 function go(id,btn){
@@ -674,11 +706,52 @@ async function deleteComment(commentId){
   if(ch)await loadComments(ch.id);
 }
 
-// ── Init ──
+function enterBookMode(bookId){
+  if(!books[bookId])return;
+  currentBook=bookId;
+  var bk=books[bookId];
+  document.documentElement.setAttribute('data-mode','coding');
+  document.querySelector('.side').innerHTML='<div style="padding:12px 10px"><a href="store.html" style="display:flex;align-items:center;gap:6px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:600;margin-bottom:16px;padding:8px 10px;border-radius:8px;transition:all .15s" onmouseover="this.style.background=\\'var(--bg-hover)\\';this.style.color=\\'var(--primary)\\'" onmouseout="this.style.background=\\'none\\';this.style.color=\\'var(--text-dim)\\'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>스토어로 돌아가기</a><div style="font-size:10px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.1em;padding:0 12px 8px">'+escapeHtml(bk.title)+'</div></div>';
+  var nav=document.querySelector('.side');
+  var items=document.createElement('div');
+  items.style.padding='0 10px';
+  bk.chapters.forEach(function(ch){
+    var btn=document.createElement('button');
+    btn.className='nav-item';
+    btn.setAttribute('data-target',ch.id);
+    btn.textContent=ch.title.substring(0,30);
+    btn.onclick=function(){go(ch.id,btn)};
+    items.appendChild(btn);
+    if(ch.h2s){
+      ch.h2s.forEach(function(h2){
+        var sub=document.createElement('button');
+        sub.className='nav-item';
+        sub.style.paddingLeft='32px';
+        sub.style.fontSize='12px';
+        sub.textContent=h2.title.substring(0,28);
+        sub.onclick=function(){smoothTo(h2.anchor)};
+        items.appendChild(sub);
+      });
+    }
+  });
+  nav.appendChild(items);
+  document.querySelectorAll('.mode-tabs').forEach(function(e){e.style.display='none'});
+  document.getElementById('logoSub').textContent=bk.title;
+  document.querySelectorAll('.chapter').forEach(function(el){el.classList.remove('active')});
+  go(bk.defaultId);
+}
+
 (function(){
   initSupabase();
   const saved=localStorage.getItem('theme');
   if(saved)document.documentElement.setAttribute('data-theme',saved);
+
+  var params=new URLSearchParams(window.location.search);
+  var bookParam=params.get('book');
+  if(bookParam&&books[bookParam]){
+    enterBookMode(bookParam);
+    return;
+  }
 
   const hash=location.hash.slice(1);
   let mode,chId;

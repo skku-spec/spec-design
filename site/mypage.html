@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark" data-mode="design">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPEC Books — 마이페이지</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[data-theme="dark"]{--bg:#202020;--bg-sidebar:#1a1a1a;--bg-card:#2a2a2a;--text:#c8c8c8;--text-bright:#FCFCF8;--text-dim:#8a8a8a;--text-dimmer:#666;--border:rgba(255,255,255,0.08);--border-strong:rgba(255,255,255,0.15);--shadow:rgba(0,0,0,0.3)}
+[data-theme="light"]{--bg:#FCFCF8;--bg-sidebar:#f5f4f0;--bg-card:#fff;--text:#3a3a3a;--text-bright:#202020;--text-dim:#777;--text-dimmer:#999;--border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.12);--shadow:rgba(0,0,0,0.08)}
+[data-mode="design"][data-theme="dark"]{--primary:#FF6C0F;--primary-variant:#FF9900;--bg-hover:rgba(255,108,15,0.08);--bg-code:#161616}
+[data-mode="design"][data-theme="light"]{--primary:#FF6C0F;--primary-variant:#FF9900;--bg-hover:rgba(255,108,15,0.06);--bg-code:#f5f4f0}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+a{text-decoration:none;color:inherit}
+.hdr{position:sticky;top:0;z-index:30;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:color-mix(in srgb,var(--bg-sidebar) 90%, transparent);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-variant));display:grid;place-items:center;font-size:14px;font-weight:800;color:#fff}
+.brand-txt{font-size:20px;font-weight:800;letter-spacing:-0.03em;color:var(--text-bright)}
+.hdr-actions{display:flex;align-items:center;gap:10px}
+.btn{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+.btn.danger{color:#ff5f5f;border-color:rgba(255,95,95,0.3)}
+.btn.danger:hover{background:rgba(255,95,95,0.1)}
+.container{max-width:900px;margin:0 auto;padding:32px 20px 80px}
+.banner{background:linear-gradient(135deg,var(--primary),var(--primary-variant));border-radius:20px;padding:36px 32px;margin-bottom:32px;color:#fff;display:flex;align-items:center;gap:20px}
+.avatar{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);object-fit:cover;background:#333}
+.banner-info h1{font-size:24px;font-weight:800;margin-bottom:2px}
+.banner-info p{font-size:14px;opacity:0.85}
+.section-title{font-size:18px;font-weight:800;color:var(--text-bright);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-title svg{width:20px;height:20px;color:var(--primary)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:40px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;cursor:pointer}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px var(--shadow);border-color:var(--border-strong)}
+.card-cover{height:120px;display:flex;align-items:center;justify-content:center;position:relative}
+.card-cover-title{font-size:18px;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.progress-bar{position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.15)}
+.progress-fill{height:100%;background:#fff;border-radius:0 2px 2px 0;transition:width .3s}
+.card-body{padding:14px 16px}
+.card-title{font-size:15px;font-weight:700;color:var(--text-bright);margin-bottom:4px}
+.card-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-dim)}
+.card-progress{color:var(--primary);font-weight:700}
+.card-action{font-size:13px;font-weight:600;color:var(--primary);margin-top:8px;display:inline-flex;align-items:center;gap:4px}
+.empty{text-align:center;padding:48px 20px;color:var(--text-dim)}
+.empty svg{width:48px;height:48px;margin-bottom:12px;opacity:0.3}
+.empty p{font-size:15px;margin-bottom:16px}
+.empty a{color:var(--primary);font-weight:600}
+.login-prompt{text-align:center;padding:80px 20px}
+.login-prompt h2{font-size:24px;font-weight:800;color:var(--text-bright);margin-bottom:8px}
+.login-prompt p{font-size:15px;color:var(--text-dim);margin-bottom:24px}
+.login-prompt .btn{height:44px;padding:0 24px;font-size:15px;background:linear-gradient(135deg,var(--primary),var(--primary-variant));border:none;color:#fff;border-radius:12px}
+.footer{text-align:center;padding:20px;font-size:12px;color:var(--text-dimmer)}
+@media(max-width:600px){.banner{flex-direction:column;text-align:center}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <a class="brand" href="store.html">
+    <div class="logo">S</div>
+    <span class="brand-txt">SPEC Books</span>
+  </a>
+  <div class="hdr-actions">
+    <a href="store.html" class="btn">스토어</a>
+    <button class="btn danger" id="logoutBtn" onclick="logout()" hidden>로그아웃</button>
+  </div>
+</header>
+<div class="container">
+  <div id="loginPrompt" class="login-prompt" hidden>
+    <h2>로그인이 필요합니다</h2>
+    <p>마이페이지는 로그인 후 이용할 수 있습니다</p>
+    <a href="login.html" class="btn">로그인하기</a>
+  </div>
+  <div id="content" hidden>
+    <div class="banner">
+      <img class="avatar" id="userAvatar" src="" alt="">
+      <div class="banner-info">
+        <h1 id="userName">사용자</h1>
+        <p id="userEmail">email@example.com</p>
+      </div>
+    </div>
+    <div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>읽고 있는 전자책</div>
+    <div class="grid" id="progressGrid"></div>
+    <div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>찜한 전자책</div>
+    <div class="grid" id="bookmarkGrid"></div>
+  </div>
+</div>
+<footer class="footer">&copy; 2025 SPEC 4기 디자인팀</footer>
+<script>
+var SUPABASE_URL='https://mjywaiocicjasefcztqr.supabase.co';
+var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXdhaW9jaWNqYXNlZmN6dHFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NTA4MDgsImV4cCI6MjA5MDUyNjgwOH0.AXZM9vlv_O8dNcTPFIolgfaZhKnYvYHvzlYUb2Zpd-U';
+var sb=null;
+var currentUser=null;
+
+var BOOKS={
+  'vibe-coding-claude':{title:'Claude Code 입문',gradient:'linear-gradient(135deg,#4C4780,#6B63B5)',category:'vibe-coding'},
+  'vibe-coding-prd':{title:'PRD 작성법',gradient:'linear-gradient(135deg,#2D5A27,#4CAF50)',category:'vibe-coding'},
+  'vibe-coding-deploy':{title:'GitHub + Vercel 배포',gradient:'linear-gradient(135deg,#1a1a2e,#16213e)',category:'vibe-coding'},
+  'vibe-coding-supabase':{title:'Supabase 백엔드 입문',gradient:'linear-gradient(135deg,#1a5c2e,#3ECF8E)',category:'vibe-coding'}
+};
+
+async function init(){
+  if(!window.supabase)return;
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true}});
+  var {data:{session}}=await sb.auth.getSession();
+  if(!session){
+    document.getElementById('loginPrompt').hidden=false;
+    return;
+  }
+  currentUser=session.user;
+  document.getElementById('content').hidden=false;
+  document.getElementById('logoutBtn').hidden=false;
+  var md=currentUser.user_metadata||{};
+  document.getElementById('userName').textContent=md.full_name||md.name||currentUser.email||'사용자';
+  document.getElementById('userEmail').textContent=currentUser.email||'';
+  document.getElementById('userAvatar').src=md.avatar_url||md.picture||'https://api.dicebear.com/8.x/initials/svg?seed='+encodeURIComponent(md.full_name||'U');
+  await Promise.all([loadProgress(),loadBookmarks()]);
+}
+
+async function loadProgress(){
+  var grid=document.getElementById('progressGrid');
+  var {data}=await sb.from('reading_progress').select('*').eq('user_id',currentUser.id).order('updated_at',{ascending:false});
+  if(!data||!data.length){
+    grid.innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><p>아직 읽기 시작한 전자책이 없습니다</p><a href="store.html">스토어에서 찾아보기</a></div>';
+    return;
+  }
+  grid.innerHTML=data.map(function(p){
+    var bk=BOOKS[p.book_id];
+    if(!bk)return '';
+    var pct=p.progress_percent||0;
+    return '<a class="card" href="index.html?book='+p.book_id+'"><div class="card-cover" style="background:'+bk.gradient+'"><span class="card-cover-title">'+bk.title+'</span><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div></div><div class="card-body"><div class="card-title">'+bk.title+'</div><div class="card-meta"><span>'+getCategoryLabel(bk.category)+'</span><span class="card-progress">'+pct+'%</span></div><div class="card-action">이어서 읽기 &rarr;</div></div></a>';
+  }).join('');
+}
+
+async function loadBookmarks(){
+  var grid=document.getElementById('bookmarkGrid');
+  var {data}=await sb.from('bookmarks').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  if(!data||!data.length){
+    grid.innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><p>찜한 전자책이 없습니다</p><a href="store.html">스토어에서 찾아보기</a></div>';
+    return;
+  }
+  grid.innerHTML=data.map(function(b){
+    var bk=BOOKS[b.book_id];
+    if(!bk)return '';
+    return '<a class="card" href="index.html?book='+b.book_id+'"><div class="card-cover" style="background:'+bk.gradient+'"><span class="card-cover-title">'+bk.title+'</span></div><div class="card-body"><div class="card-title">'+bk.title+'</div><div class="card-meta"><span>'+getCategoryLabel(bk.category)+'</span></div></div></a>';
+  }).join('');
+}
+
+function getCategoryLabel(cat){
+  return {'ai-basics':'AI 기초','vibe-coding':'바이브코딩','vibe-design':'바이브디자인','vibe-marketing':'바이브마케팅'}[cat]||cat;
+}
+
+async function logout(){
+  if(sb)await sb.auth.signOut();
+  window.location.href='store.html';
+}
+
+init();
+</script>
+</body>
+</html>
