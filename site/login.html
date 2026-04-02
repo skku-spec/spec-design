@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPEC Books — 로그인</title>
+<title>OWbook — 로그인</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -51,13 +51,13 @@ a{text-decoration:none;color:inherit}
 <header class="hdr">
   <a class="brand" href="store.html">
     <div class="logo">S</div>
-    <span class="brand-txt">SPEC Books</span>
+    <span class="brand-txt">OWbook</span>
   </a>
 </header>
 <div class="wrap">
   <div class="card">
     <div class="card-title" id="formTitle">로그인</div>
-    <div class="card-sub" id="formSub">SPEC Books에 오신 것을 환영합니다</div>
+    <div class="card-sub" id="formSub">OWbook에 오신 것을 환영합니다</div>
     <div class="tabs">
       <button class="tab active" id="tabLogin" onclick="switchTab('login')">로그인</button>
       <button class="tab" id="tabSignup" onclick="switchTab('signup')">회원가입</button>
@@ -97,7 +97,7 @@ a{text-decoration:none;color:inherit}
     <a class="back" href="store.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>스토어로 돌아가기</a>
   </div>
 </div>
-<footer class="footer">&copy; 2025 SPEC 4기 디자인팀</footer>
+<footer class="footer">&copy; 2026 OWbook</footer>
 <script>
 var SUPABASE_URL='https://mjywaiocicjasefcztqr.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qeXdhaW9jaWNqYXNlZmN6dHFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NTA4MDgsImV4cCI6MjA5MDUyNjgwOH0.AXZM9vlv_O8dNcTPFIolgfaZhKnYvYHvzlYUb2Zpd-U';
@@ -129,7 +129,7 @@ function switchTab(mode){
     document.getElementById('loginForm').hidden=false;
     document.getElementById('signupForm').hidden=true;
     document.getElementById('formTitle').textContent='로그인';
-    document.getElementById('formSub').textContent='SPEC Books에 오신 것을 환영합니다';
+    document.getElementById('formSub').textContent='OWbook에 오신 것을 환영합니다';
   }else{
     document.getElementById('tabLogin').classList.remove('active');
     document.getElementById('tabSignup').classList.add('active');

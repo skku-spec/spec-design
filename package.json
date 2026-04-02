@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "agentation": "^3.0.2",
     "marked": "^17.0.4"
   }
 }
